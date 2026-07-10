@@ -34,6 +34,11 @@ ignore = [
     "S101", # Allow assert statements in tests
     "B008", # Allow function calls (like Depends) in argument defaults (FastAPI standard)
     "S105", # Ignore hardcoded password warning in config templates
+    "S106", # Ignore hardcoded passwords in test code parameter passing
+    "S311", # Ignore standard random generator warnings for seeding scripts
+    "E712", # Ignore boolean comparison checks (SQLAlchemy requires == False)
+    "C901", # Ignore function complexity checks for endpoints and seed scripts
+    "UP046", # Ignore Generic[T] warning to preserve Pydantic v2 backwards compatibility
 ]
 
 [tool.mypy]

@@ -38,15 +38,19 @@ def setup_logging() -> None:
     # Format handler for standard python logging (like uvicorn, alembic, etc.)
     # to output through structlog
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(structlog.stdlib.ProcessorFormatter(
-        processor=formatter_processor,
-        foreign_pre_chain=shared_processors,
-    ))
+    handler.setFormatter(
+        structlog.stdlib.ProcessorFormatter(
+            processor=formatter_processor,
+            foreign_pre_chain=shared_processors,
+        )
+    )
 
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.handlers = [handler]
-    root_logger.setLevel(logging.INFO if settings.ENVIRONMENT.lower() == "production" else logging.DEBUG)
+    root_logger.setLevel(
+        logging.INFO if settings.ENVIRONMENT.lower() == "production" else logging.DEBUG
+    )
 
     # Silence noisy loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
