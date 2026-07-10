@@ -254,7 +254,7 @@ export const ProductDetails: React.FC = () => {
               reviews.map((rev: any) => (
                 <div key={rev.id} className="rounded-xl border border-border bg-card p-5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-sm">{rev.user.full_name}</span>
+                    <span className="font-bold text-white text-sm">{rev.user?.full_name || 'Anonymous User'}</span>
                     <div className="flex items-center text-yellow-400">
                       {Array.from({ length: rev.rating }).map((_, i) => (
                         <Star key={i} className="h-3.5 w-3.5 fill-current" />
