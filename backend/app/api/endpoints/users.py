@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +8,9 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.common import PaginatedResponse
+from app.schemas.response import APIResponse
 from app.schemas.user import UserRead, UserUpdate
+from app.utils.event_logger import log_event
 from app.utils.pagination import paginate
 
 router = APIRouter()
@@ -16,22 +18,25 @@ router = APIRouter()
 
 @router.get(
     "/me",
-    response_model=UserRead,
+    response_model=APIResponse[UserRead],
     summary="Retrieve details of currently logged-in user",
 )
 async def get_my_profile(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Any:
     """Get profile information for the authenticated user."""
-    return current_user
+    return APIResponse(
+        success=True, message="Profile retrieved successfully.", data=current_user
+    )
 
 
 @router.patch(
     "/me",
-    response_model=UserRead,
+    response_model=APIResponse[UserRead],
     summary="Update details of currently logged-in user",
 )
 async def update_my_profile(
+    request: Request,
     body: UserUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -42,9 +47,12 @@ async def update_my_profile(
     if body.phone is not None:
         current_user.phone = body.phone
 
+    await log_event(db, request, "profile_update", user_id=current_user.id)
     await db.commit()
     await db.refresh(current_user)
-    return current_user
+    return APIResponse(
+        success=True, message="Profile updated successfully.", data=current_user
+    )
 
 
 @router.get(

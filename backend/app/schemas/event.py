@@ -20,3 +20,12 @@ class EventRead(BaseModel):
         None, validation_alias="metadata_", serialization_alias="metadata"
     )
     timestamp: datetime.datetime
+
+
+class EventCreate(BaseModel):
+    """Event tracking log payload schema."""
+
+    event_type: str = Field(..., max_length=50)
+    page: str | None = Field(None, max_length=255)
+    product_id: int | None = None
+    metadata: dict[str, Any] | None = None

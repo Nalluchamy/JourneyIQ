@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy import select
@@ -13,6 +13,32 @@ from app.models.user import User
 
 # Standard OAuth2 scheme pointing to our login endpoint for Swagger Bearer Auth integration
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+
+
+async def get_current_user_optional(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> User | None:
+    """Optional authentication dependency that resolves logged-in user or returns None."""
+    auth_header = request.headers.get("authorization")
+    if not auth_header or not auth_header.lower().startswith("bearer "):
+        return None
+    token = auth_header.split(" ")[1]
+    try:
+        payload = decode_token(token)
+        user_id_str = payload.get("sub")
+        token_type = payload.get("type")
+        if user_id_str is None or token_type != "access":
+            return None
+        user_id = int(user_id_str)
+    except (JWTError, ValueError):
+        return None
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active or user.is_deleted:
+        return None
+    return user
 
 
 async def get_current_user(

@@ -1,17 +1,72 @@
-import React, { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Menu, X, Rocket, Database, Settings } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Menu, X, Rocket, Heart, ShoppingCart, User, LogOut } from 'lucide-react';
+import { cartApi, wishlistApi, eventsApi } from '../services/api';
 
 export const MainLayout: React.FC = () => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+
+  // Sync auth state with localStorage changes across tabs/windows
+  useEffect(() => {
+    const syncAuth = () => {
+      setIsAuthenticated(!!localStorage.getItem('token'));
+    };
+    window.addEventListener('storage', syncAuth);
+    return () => window.removeEventListener('storage', syncAuth);
+  }, []);
+
+  // Track page views automatically on route changes
+  useEffect(() => {
+    let eventType = 'page_view';
+    if (location.pathname === '/') {
+      eventType = 'homepage_view';
+    } else if (location.pathname === '/products') {
+      eventType = 'category_view';
+    }
+
+    // Details page logs its own view with product_id, so we skip it here
+    if (location.pathname !== '/' && !location.pathname.startsWith('/products/')) {
+      eventsApi.trackEvent(eventType, location.pathname);
+    } else if (location.pathname === '/') {
+      eventsApi.trackEvent('homepage_view', location.pathname);
+    }
+  }, [location.pathname]);
+
+  // Fetch cart & wishlist queries to display badges in header
+  const { data: cart } = useQuery({
+    queryKey: ['cart'],
+    queryFn: cartApi.getCart,
+    enabled: isAuthenticated,
+  });
+
+  const { data: wishlist } = useQuery({
+    queryKey: ['wishlist'],
+    queryFn: wishlistApi.getWishlist,
+    enabled: isAuthenticated,
+  });
+
+  const cartCount = cart?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const wishlistCount = wishlist?.length || 0;
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
+    queryClient.clear();
+    setIsAuthenticated(false);
+    navigate('/');
+  };
 
   const navItems = [
     { name: t('nav.home'), path: '/' },
     { name: t('nav.products'), path: '/products' },
-    { name: t('nav.about'), path: '/about' },
-    { name: t('nav.contact'), path: '/contact' },
   ];
 
   return (
@@ -44,8 +99,65 @@ export const MainLayout: React.FC = () => {
             ))}
           </nav>
 
+          {/* Quick Actions & Auth */}
+          <div className="hidden md:flex items-center space-x-6">
+            {isAuthenticated ? (
+              <>
+                <Link to="/wishlist" className="relative p-1.5 text-muted-foreground hover:text-white" aria-label="Wishlist">
+                  <Heart className="h-5 w-5" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-3xs font-bold text-white">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
+
+                <Link to="/cart" className="relative p-1.5 text-muted-foreground hover:text-white" aria-label="Cart">
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-3xs font-bold text-white">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+
+                <Link to="/profile" className="p-1.5 text-muted-foreground hover:text-white" aria-label="Profile">
+                  <User className="h-5 w-5" />
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1.5 text-sm font-medium text-muted-foreground hover:text-white"
+                  aria-label="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-primary/90"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+
           {/* Mobile Menu Button */}
-          <div className="flex md:hidden">
+          <div className="flex md:hidden items-center space-x-4">
+            {isAuthenticated && (
+              <>
+                <Link to="/cart" className="relative p-1.5 text-muted-foreground" aria-label="Cart">
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-3xs font-bold text-white">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none"
@@ -74,6 +186,42 @@ export const MainLayout: React.FC = () => {
                   {item.name}
                 </NavLink>
               ))}
+
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                  >
+                    Wishlist ({wishlistCount})
+                  </Link>
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-left block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-md px-3 py-2 text-base font-medium text-primary hover:bg-muted"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         )}
@@ -92,19 +240,7 @@ export const MainLayout: React.FC = () => {
               <span>{t('footer.copyright', { year: new Date().getFullYear() })}</span>
             </div>
 
-            {/* Tech details (Phase 1 Confirmation badges) */}
-            <div className="flex space-x-6">
-              <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
-                <Database className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Async Database Layer</span>
-              </div>
-              <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
-                <Settings className="h-3.5 w-3.5 text-violet-500" />
-                <span>FastAPI v1 API</span>
-              </div>
-            </div>
-
-            <div className="text-xs text-muted-foreground">{t('footer.builtFor')}</div>
+            <div className="text-xs text-muted-foreground">JourneyIQ Enterprise Storefront</div>
           </div>
         </div>
       </footer>

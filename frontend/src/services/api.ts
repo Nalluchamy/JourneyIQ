@@ -3,6 +3,20 @@ import axios from 'axios';
 // Resolve backend API URL from Vite environment variable
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
+// Generate or retrieve session UUID for storefront journey tracking
+export const getOrCreateSessionId = (): string => {
+  let sessionId = sessionStorage.getItem('session_id');
+  if (!sessionId) {
+    sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+    sessionStorage.setItem('session_id', sessionId);
+  }
+  return sessionId;
+};
+
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   timeout: 10000, // 10 seconds timeout
@@ -12,16 +26,14 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor to attach authentication token or tracing headers dynamically
+// Request interceptor to attach authentication token and tracing headers dynamically
 apiClient.interceptors.request.use(
   (config) => {
-    // Pre-allocate space for Auth Header (used in Phase 2+)
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    // You could also generate client-side trace IDs here if desired
+    config.headers['X-Session-ID'] = getOrCreateSessionId();
     return config;
   },
   (error) => {
@@ -42,15 +54,12 @@ apiClient.interceptors.response.use(
       status: errorResponse?.status,
     };
 
-    // Global error console intercept
     console.error('API Client error:', requestDetails, errorResponse?.data || error.message);
 
-    // standard API response mapping
     if (errorResponse) {
-      // Return structured response error
       return Promise.reject({
         status: errorResponse.status,
-        message: errorResponse.data?.message || 'An unexpected error occurred.',
+        message: errorResponse.data?.detail || errorResponse.data?.message || 'An unexpected error occurred.',
         error: errorResponse.data?.error || 'ApiException',
         requestId: errorResponse.headers['x-request-id'] || errorResponse.data?.request_id,
         details: errorResponse.data,
@@ -65,3 +74,115 @@ apiClient.interceptors.response.use(
     });
   }
 );
+
+// API Endpoints Services Wrapper
+export const authApi = {
+  login: async (credentials: any) => {
+    // Standard OAuth2 form submission
+    const params = new URLSearchParams();
+    params.append('username', credentials.email);
+    params.append('password', credentials.password);
+    const res = await apiClient.post('/api/v1/auth/login', params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    return res.data;
+  },
+  register: async (userData: any) => {
+    const res = await apiClient.post('/api/v1/auth/register', userData);
+    return res.data;
+  },
+  getProfile: async () => {
+    const res = await apiClient.get('/api/v1/users/me');
+    return res.data.data; // Unwrap envelope
+  },
+  updateProfile: async (data: any) => {
+    const res = await apiClient.patch('/api/v1/users/me', data);
+    return res.data.data; // Unwrap envelope
+  },
+};
+
+export const productsApi = {
+  getProducts: async (params: any) => {
+    const res = await apiClient.get('/api/v1/products', { params });
+    return res.data;
+  },
+  getProduct: async (id: number) => {
+    const res = await apiClient.get(`/api/v1/products/${id}`);
+    return res.data;
+  },
+};
+
+export const reviewsApi = {
+  getReviews: async (productId: number) => {
+    const res = await apiClient.get(`/api/v1/products/${productId}/reviews`);
+    return res.data.data;
+  },
+  createReview: async (productId: number, data: any) => {
+    const res = await apiClient.post(`/api/v1/products/${productId}/reviews`, data);
+    return res.data.data;
+  },
+};
+
+export const wishlistApi = {
+  getWishlist: async () => {
+    const res = await apiClient.get('/api/v1/wishlist');
+    return res.data.data;
+  },
+  addToWishlist: async (productId: number) => {
+    const res = await apiClient.post('/api/v1/wishlist', { product_id: productId });
+    return res.data.data;
+  },
+  removeFromWishlist: async (productId: number) => {
+    const res = await apiClient.delete(`/api/v1/wishlist/${productId}`);
+    return res.data;
+  },
+};
+
+export const cartApi = {
+  getCart: async () => {
+    const res = await apiClient.get('/api/v1/cart');
+    return res.data.data;
+  },
+  addToCart: async (productId: number, quantity: number = 1) => {
+    const res = await apiClient.post('/api/v1/cart', { product_id: productId, quantity });
+    return res.data.data;
+  },
+  updateQuantity: async (productId: number, quantity: number) => {
+    const res = await apiClient.put(`/api/v1/cart/${productId}`, { quantity });
+    return res.data.data;
+  },
+  removeFromCart: async (productId: number) => {
+    const res = await apiClient.delete(`/api/v1/cart/${productId}`);
+    return res.data;
+  },
+  clearCart: async () => {
+    const res = await apiClient.delete('/api/v1/cart');
+    return res.data;
+  },
+};
+
+export const eventsApi = {
+  trackEvent: async (eventType: string, pagePath: string, productId?: number, metadata?: any) => {
+    try {
+      await apiClient.post('/api/v1/events', {
+        event_type: eventType,
+        page: pagePath,
+        product_id: productId,
+        metadata: metadata || null,
+      });
+    } catch (e) {
+      console.warn('Silent event tracking failure:', e);
+    }
+  },
+  getRecentViews: async (sessionId: string) => {
+    const res = await apiClient.get(`/api/v1/events/recent-views?session_id=${sessionId}`);
+    return res.data.data;
+  },
+};
+
+export const ordersApi = {
+  getMyOrders: async () => {
+    const res = await apiClient.get('/api/v1/orders/me');
+    return res.data; // returns paginated results
+  },
+};

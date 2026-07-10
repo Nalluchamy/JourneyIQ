@@ -60,7 +60,7 @@ async def test_get_users_me_authorized(
 
     response = await client.get("/api/v1/users/me", headers=headers)
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert data["full_name"] == "Me Authorized"
     assert data["email"] == "me_authorized@example.com"
 
@@ -85,7 +85,7 @@ async def test_patch_users_me(client: AsyncClient, db_session: AsyncSession) -> 
         "/api/v1/users/me", json=update_payload, headers=headers
     )
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["data"]
     assert data["full_name"] == "Updated Name"
     assert data["phone"] == "+987654321"
 

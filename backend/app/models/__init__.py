@@ -12,6 +12,8 @@ from app.models.segment import Segment
 from app.models.payment import Payment
 from app.models.refresh_token import RefreshToken
 from app.models.audit_log import AuditLog
+from app.models.wishlist_item import WishlistItem
+from app.models.cart_item import CartItem
 
 __all__ = [
     "Base",
@@ -29,4 +31,6 @@ __all__ = [
     "Payment",
     "RefreshToken",
     "AuditLog",
+    "WishlistItem",
+    "CartItem",
 ]

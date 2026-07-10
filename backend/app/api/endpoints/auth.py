@@ -35,6 +35,7 @@ from app.schemas.auth import (
 from app.api.deps import get_current_user
 from app.schemas.user import UserRead
 from app.services.mail import get_mail_service
+from app.utils.event_logger import log_event
 
 router = APIRouter()
 
@@ -239,6 +240,7 @@ async def login(
     db.add(db_rt)
 
     await log_security_event(db, user.id, "login_success", request)
+    await log_event(db, request, "login", user_id=user.id)
     await db.commit()
 
     return {
@@ -325,6 +327,7 @@ async def logout(
     if db_token:
         db_token.is_revoked = True
         await log_security_event(db, db_token.user_id, "logout", request)
+        await log_event(db, request, "logout", user_id=db_token.user_id)
         await db.commit()
 
     return {"message": "Logged out successfully"}
