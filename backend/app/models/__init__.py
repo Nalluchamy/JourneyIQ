@@ -1,28 +1,32 @@
 from app.db.base_class import Base, BaseModel
+from app.models.user import User
 from app.models.category import Category
-from app.models.event import Event
+from app.models.product import Product
 from app.models.inventory_history import InventoryHistory
 from app.models.order import Order
 from app.models.order_item import OrderItem
-from app.models.payment import Payment
-from app.models.product import Product
-from app.models.recommendation import Recommendation
 from app.models.review import Review
+from app.models.event import Event
+from app.models.recommendation import Recommendation
 from app.models.segment import Segment
-from app.models.user import User
+from app.models.payment import Payment
+from app.models.refresh_token import RefreshToken
+from app.models.audit_log import AuditLog
 
 __all__ = [
     "Base",
     "BaseModel",
+    "User",
     "Category",
-    "Event",
+    "Product",
     "InventoryHistory",
     "Order",
     "OrderItem",
-    "Payment",
-    "Product",
-    "Recommendation",
     "Review",
+    "Event",
+    "Recommendation",
     "Segment",
-    "User",
+    "Payment",
+    "RefreshToken",
+    "AuditLog",
 ]

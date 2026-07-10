@@ -16,3 +16,10 @@ class UserRead(BaseModel):
     is_active: bool
     created_at: datetime.datetime
     updated_at: datetime.datetime
+
+
+class UserUpdate(BaseModel):
+    """User profile update schema."""
+
+    full_name: str | None = None
+    phone: str | None = None

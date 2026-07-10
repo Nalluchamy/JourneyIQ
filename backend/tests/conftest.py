@@ -1,3 +1,7 @@
+import os
+
+os.environ["ENVIRONMENT"] = "testing"
+
 import asyncio
 from collections.abc import AsyncGenerator, Generator
 
@@ -5,6 +9,8 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from app.core.config import settings
 
 from app.db.base_class import Base
 from app.db.session import get_db

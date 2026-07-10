@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "replace-with-a-very-secure-secret-key-for-production"
     JWT_SECRET: str = "replace-with-a-very-secure-jwt-secret-for-production"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    REQUIRE_EMAIL_VERIFICATION: bool = True
 
     # URLs
     FRONTEND_URL: str = "http://localhost:5173"
