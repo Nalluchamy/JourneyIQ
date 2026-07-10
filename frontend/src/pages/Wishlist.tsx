@@ -112,7 +112,7 @@ export const Wishlist: React.FC = () => {
                   </h3>
                 </Link>
                 <div className="text-lg font-black text-white mt-1 mb-4">
-                  ${item.product?.price?.toFixed(2)}
+                  ${Number(item.product?.price || 0).toFixed(2)}
                 </div>
               </div>
 

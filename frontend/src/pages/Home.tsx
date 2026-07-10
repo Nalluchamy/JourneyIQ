@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Eye, Sparkles, LineChart, SplitSquareVertical } from 'lucide-react';
 
@@ -50,14 +51,14 @@ export const Home: React.FC = () => {
         </p>
 
         <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <button className="flex items-center space-x-2 rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary/90 hover:scale-105 active:scale-95">
+          <Link to="/products" className="flex items-center space-x-2 rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary/90 hover:scale-105 active:scale-95">
             <span>{t('hero.ctaStart')}</span>
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </Link>
 
-          <button className="rounded-lg border border-border bg-background/50 px-6 py-3.5 text-sm font-semibold text-white transition-all hover:bg-muted hover:scale-105 active:scale-95">
+          <Link to="/login" className="rounded-lg border border-border bg-background/50 px-6 py-3.5 text-sm font-semibold text-white transition-all hover:bg-muted hover:scale-105 active:scale-95">
             {t('hero.ctaDemo')}
-          </button>
+          </Link>
         </div>
       </div>
 

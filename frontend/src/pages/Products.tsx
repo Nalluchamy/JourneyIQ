@@ -411,7 +411,7 @@ export const Products: React.FC = () => {
 
                     {/* Bottom row actions */}
                     <div className="flex items-center justify-between mt-auto border-t border-border/50 pt-3">
-                      <span className="text-lg font-black text-white">${prod.price.toFixed(2)}</span>
+                      <span className="text-lg font-black text-white">${Number(prod.price).toFixed(2)}</span>
                       <button
                         onClick={() => addToCartMutation.mutate(prod.id)}
                         disabled={prod.stock === 0}

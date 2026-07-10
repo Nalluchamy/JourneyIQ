@@ -182,7 +182,7 @@ export const ProductDetails: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4 border-y border-border py-4">
-            <span className="text-3xl font-black text-white">${product.price.toFixed(2)}</span>
+            <span className="text-3xl font-black text-white">${Number(product.price).toFixed(2)}</span>
             <span
               className={`rounded px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider ${
                 product.stock > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
@@ -336,7 +336,7 @@ export const ProductDetails: React.FC = () => {
                 <h4 className="font-bold text-white text-xs leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                   {p.name}
                 </h4>
-                <span className="font-black text-white text-xs">${p.price.toFixed(2)}</span>
+                <span className="font-black text-white text-xs">${Number(p.price).toFixed(2)}</span>
               </Link>
             ))}
           </div>

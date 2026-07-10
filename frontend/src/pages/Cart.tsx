@@ -51,7 +51,7 @@ export const Cart: React.FC = () => {
 
   // Calculations
   const calculateSubtotal = () => {
-    return items?.reduce((sum: number, item: any) => sum + item.product.price * item.quantity, 0) || 0;
+    return items?.reduce((sum: number, item: any) => sum + Number(item.product.price) * item.quantity, 0) || 0;
   };
 
   const subtotal = calculateSubtotal();
@@ -136,7 +136,7 @@ export const Cart: React.FC = () => {
                       {item.product.name}
                     </h4>
                   </Link>
-                  <span className="text-xs font-black text-white block mt-1">${item.product.price.toFixed(2)}</span>
+                  <span className="text-xs font-black text-white block mt-1">${Number(item.product.price).toFixed(2)}</span>
                 </div>
 
                 {/* Quantity Controls */}
