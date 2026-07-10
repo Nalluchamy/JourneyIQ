@@ -66,7 +66,7 @@ async def log_security_event(
 
 @router.post(
     "/register",
-    response_model=UserRead,
+    response_model=TokenResponse,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(register_limiter)],
 )
@@ -75,7 +75,7 @@ async def register(
     user_in: UserRegister,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Any:
-    """Register a new customer account, defaulting to unverified email state."""
+    """Register a new customer account, auto-verify, and return login tokens."""
     # Check if duplicate email exists
     email_check = await db.execute(select(User).where(User.email == user_in.email))
     if email_check.scalar_one_or_none():
@@ -84,7 +84,7 @@ async def register(
             detail="Email is already registered",
         )
 
-    # Hash password and store user
+    # Hash password and store user (auto-verified for seamless onboarding)
     hashed_pw = get_password_hash(user_in.password)
     user = User(
         full_name=user_in.full_name,
@@ -92,27 +92,41 @@ async def register(
         password_hash=hashed_pw,
         phone=user_in.phone,
         role="customer",
-        is_verified=False,
+        is_verified=True,
     )
     db.add(user)
     await db.flush()  # Resolve user.id
 
-    # Log registration start audit event
+    # Log registration audit event
     await log_security_event(
         db,
         user.id,
-        "registration_started",
+        "registration_completed",
         request,
         {"email": user.email},
     )
 
-    # Trigger email verification
-    verify_token = create_verification_token(user.email)
-    mail_service = get_mail_service()
-    await mail_service.send_verification_email(user.email, verify_token)
+    # Generate tokens for immediate auto-login
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
 
+    # Hash refresh token before database storage
+    hashed_rt = hash_token(refresh_token)
+    rt_expires = datetime.datetime.now(datetime.timezone.utc).replace(
+        tzinfo=None
+    ) + datetime.timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+
+    db_rt = RefreshToken(user_id=user.id, token_hash=hashed_rt, expires_at=rt_expires)
+    db.add(db_rt)
+
+    await log_event(db, request, "login", user_id=user.id)
     await db.commit()
-    return user
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
 
 
 @router.get("/verify", status_code=status.HTTP_200_OK)

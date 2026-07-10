@@ -23,16 +23,17 @@ export const Login: React.FC = () => {
 
     try {
       if (isRegister) {
-        await authApi.register({
+        const data = await authApi.register({
           email,
           password,
           full_name: fullName,
           phone: phone || null,
         });
-        setSuccessMsg('Registration successful! Switch to Sign In tab to log in.');
-        // Reset inputs
-        setIsRegister(false);
-        setPassword('');
+        // Auto-login: store tokens and redirect
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
+        window.dispatchEvent(new Event('storage'));
+        navigate('/');
       } else {
         const data = await authApi.login({ email, password });
         localStorage.setItem('token', data.access_token);
