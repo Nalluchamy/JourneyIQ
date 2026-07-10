@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate } from 'react-router-dom';
-import { Trash2, ShoppingCart, ArrowRight, Minus, Plus, RefreshCw } from 'lucide-react';
+import { Trash2, ShoppingCart, ArrowRight, Minus, Plus, PackageOpen, AlertTriangle } from 'lucide-react';
 import { cartApi } from '../services/api';
 
 export const Cart: React.FC = () => {
   const queryClient = useQueryClient();
   const isAuthenticated = !!localStorage.getItem('token');
   const [toastMsg, setToastMsg] = useState('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Fetch Cart Items
   const { data: items, isLoading, isError } = useQuery({
@@ -32,7 +33,7 @@ export const Cart: React.FC = () => {
     mutationFn: (productId: number) => cartApi.removeFromCart(productId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('Item removed from cart.');
+      triggerToast('✓ Item removed from cart');
     },
   });
 
@@ -40,7 +41,8 @@ export const Cart: React.FC = () => {
     mutationFn: cartApi.clearCart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('Cart cleared.');
+      setShowClearConfirm(false);
+      triggerToast('✓ Cart cleared successfully');
     },
   });
 
@@ -72,6 +74,37 @@ export const Cart: React.FC = () => {
         </div>
       )}
 
+      {/* Clear Cart Confirmation Dialog */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="rounded-full bg-destructive/15 p-2.5">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Clear Shopping Cart?</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">This will remove all {items?.length || 0} items from your cart.</p>
+              </div>
+            </div>
+            <div className="flex space-x-3 pt-2">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="flex-1 rounded-lg border border-border bg-card py-2.5 text-sm font-semibold text-white transition-all hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => clearCartMutation.mutate()}
+                className="flex-1 rounded-lg bg-red-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700"
+              >
+                Yes, Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Shopping Cart</h1>
@@ -79,8 +112,8 @@ export const Cart: React.FC = () => {
         </div>
         {items && items.length > 0 && (
           <button
-            onClick={() => clearCartMutation.mutate()}
-            className="text-xs font-bold text-red-400 border border-destructive/30 rounded-lg px-3 py-2 hover:bg-destructive/10"
+            onClick={() => setShowClearConfirm(true)}
+            className="text-xs font-bold text-red-400 border border-destructive/30 rounded-lg px-3 py-2 hover:bg-destructive/10 transition-colors"
           >
             Clear Cart
           </button>
@@ -97,12 +130,14 @@ export const Cart: React.FC = () => {
 
       {items && items.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-16 text-center">
-          <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-bold text-white mb-1">Your cart is empty</h3>
-          <p className="text-sm text-muted-foreground mb-6">Explore products and add them to your shopping cart</p>
+          <div className="rounded-full bg-muted/60 p-6 mb-6">
+            <PackageOpen className="h-16 w-16 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">Your cart is empty</h3>
+          <p className="text-sm text-muted-foreground mb-8 max-w-sm">Looks like you haven't added any products yet. Browse our catalog and find something you love.</p>
           <Link
             to="/products"
-            className="flex items-center space-x-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-primary/95"
+            className="flex items-center space-x-2 rounded-xl bg-primary px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-primary/95 hover:scale-105 active:scale-95"
           >
             <span>Browse Products</span>
             <ArrowRight className="h-4 w-4" />
@@ -119,16 +154,22 @@ export const Cart: React.FC = () => {
                 key={item.id}
                 className="flex items-center justify-between rounded-xl border border-border bg-card p-4 gap-4"
               >
-                {/* Image Placeholder */}
-                <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted flex items-center justify-center text-2xs text-muted-foreground uppercase font-bold text-center p-1">
+                {/* Product Thumbnail */}
+                <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                   {item.product.image_url ? (
-                    <img src={item.product.image_url} alt={item.product.name} className="h-full w-full object-cover" />
+                    <img
+                      src={item.product.image_url}
+                      alt={item.product.name}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <span>{item.product.brand || 'Product'}</span>
+                    <div className="h-full w-full flex items-center justify-center text-2xs text-muted-foreground uppercase font-bold text-center p-1">
+                      <span>{item.product.brand || 'Product'}</span>
+                    </div>
                   )}
                 </div>
 
-                {/* Name / Brand */}
+                {/* Name / Brand / Stock */}
                 <div className="flex-grow min-w-0">
                   <span className="text-3xs font-bold text-primary uppercase tracking-wider">{item.product.brand}</span>
                   <Link to={`/products/${item.product_id}`}>
@@ -137,6 +178,19 @@ export const Cart: React.FC = () => {
                     </h4>
                   </Link>
                   <span className="text-xs font-black text-white block mt-1">${Number(item.product.price).toFixed(2)}</span>
+                  {/* Stock status warning */}
+                  {item.product.stock <= 5 && item.product.stock > 0 && (
+                    <span className="inline-flex items-center space-x-1 mt-1 text-2xs font-bold text-amber-400">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span>Only {item.product.stock} left in stock</span>
+                    </span>
+                  )}
+                  {item.product.stock === 0 && (
+                    <span className="inline-flex items-center space-x-1 mt-1 text-2xs font-bold text-red-400">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span>Out of stock</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Quantity Controls */}
@@ -163,7 +217,7 @@ export const Cart: React.FC = () => {
                 {/* Delete Button */}
                 <button
                   onClick={() => removeMutation.mutate(item.product_id)}
-                  className="rounded-lg border border-border bg-card p-2.5 text-muted-foreground hover:border-destructive hover:text-red-400"
+                  className="rounded-lg border border-border bg-card p-2.5 text-muted-foreground hover:border-destructive hover:text-red-400 transition-colors"
                   aria-label="Remove item"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -178,7 +232,7 @@ export const Cart: React.FC = () => {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">Subtotal ({items.reduce((s: number, i: any) => s + i.quantity, 0)} items)</span>
                 <span className="font-semibold text-white">${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
@@ -192,7 +246,7 @@ export const Cart: React.FC = () => {
             </div>
 
             <button
-              onClick={() => triggerToast('Checkout is disabled for Phase 4 (as specified by user requirements).')}
+              onClick={() => triggerToast('Checkout will be available in Phase 5.')}
               className="w-full flex items-center justify-center space-x-2 rounded-xl bg-primary py-3 text-sm font-bold text-white transition-all hover:bg-primary/90"
             >
               <span>Proceed to Checkout</span>

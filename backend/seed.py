@@ -111,24 +111,158 @@ async def seed_database() -> None:
         await db.commit()
         print(f"Seeded {len(categories)} categories.")
 
-        # 3. Seed Products (100)
+        # 3. Seed Products (100) with realistic names per category
+        # Category-aware product catalog: {category_name: [(name, brand, price_min, price_max), ...]}
+        product_catalog: dict[str, list[tuple[str, str, float, float]]] = {
+            "Electronics": [
+                ("Wireless Noise-Cancelling Headphones", "Sony", 149.99, 349.99),
+                ("4K Ultra HD Smart TV 55\"", "Samsung", 399.99, 799.99),
+                ("Portable Bluetooth Speaker", "JBL", 29.99, 149.99),
+                ("USB-C Fast Charging Hub", "Anker", 24.99, 59.99),
+                ("Mechanical Gaming Keyboard", "Corsair", 79.99, 179.99),
+                ("Wireless Gaming Mouse", "Logitech", 39.99, 99.99),
+                ("True Wireless Earbuds Pro", "Apple", 129.99, 249.99),
+                ("Portable Power Bank 20000mAh", "Anker", 29.99, 69.99),
+            ],
+            "Apparel & Fashion": [
+                ("Classic Fit Cotton Polo Shirt", "Ralph Lauren", 49.99, 89.99),
+                ("Slim Fit Stretch Jeans", "Levi's", 39.99, 79.99),
+                ("Lightweight Running Sneakers", "Nike", 69.99, 159.99),
+                ("Premium Leather Belt", "Tommy Hilfiger", 29.99, 69.99),
+                ("Wool Blend Overcoat", "Zara", 99.99, 249.99),
+                ("Athletic Performance T-Shirt", "Under Armour", 24.99, 49.99),
+                ("Canvas Casual Backpack", "Herschel", 49.99, 89.99),
+                ("UV Protection Sunglasses", "Ray-Ban", 89.99, 199.99),
+            ],
+            "Home & Kitchen": [
+                ("Stainless Steel French Press", "Bodum", 19.99, 49.99),
+                ("Non-Stick Ceramic Cookware Set", "GreenPan", 89.99, 199.99),
+                ("Programmable Coffee Maker 12-Cup", "Cuisinart", 49.99, 129.99),
+                ("Bamboo Cutting Board Set", "Royal Craft", 14.99, 34.99),
+                ("Cast Iron Dutch Oven 6-Qt", "Lodge", 39.99, 79.99),
+                ("Electric Kettle Temperature Control", "Fellow", 69.99, 149.99),
+                ("Silicone Kitchen Utensil Set", "OXO", 19.99, 44.99),
+            ],
+            "Books & Media": [
+                ("The Art of Clear Thinking", "Penguin Books", 12.99, 24.99),
+                ("JavaScript: The Definitive Guide", "O'Reilly Media", 29.99, 49.99),
+                ("Atomic Habits Hardcover", "Avery Publishing", 14.99, 27.99),
+                ("World Atlas 2026 Edition", "National Geographic", 19.99, 39.99),
+                ("Creative Photography Masterclass", "DK Publishing", 24.99, 44.99),
+                ("The Lean Startup", "Crown Business", 14.99, 29.99),
+            ],
+            "Beauty & Personal Care": [
+                ("Vitamin C Brightening Serum", "The Ordinary", 9.99, 29.99),
+                ("Hydrating Face Moisturizer SPF 30", "CeraVe", 12.99, 24.99),
+                ("Argan Oil Hair Treatment", "Moroccanoil", 29.99, 49.99),
+                ("Charcoal Purifying Face Mask", "Origins", 19.99, 34.99),
+                ("Electric Precision Trimmer", "Philips", 24.99, 59.99),
+                ("Natural Deodorant Stick", "Native", 9.99, 14.99),
+            ],
+            "Sports & Outdoors": [
+                ("Yoga Mat Extra Thick 6mm", "Manduka", 29.99, 79.99),
+                ("Adjustable Dumbbell Set 25lb", "Bowflex", 149.99, 349.99),
+                ("Insulated Water Bottle 32oz", "Hydro Flask", 29.99, 49.99),
+                ("Camping Tent 4-Person", "Coleman", 89.99, 249.99),
+                ("Resistance Bands Set", "TheraBand", 14.99, 34.99),
+                ("GPS Running Watch", "Garmin", 149.99, 399.99),
+            ],
+            "Toys & Games": [
+                ("Building Blocks Creative Set 1000pc", "LEGO", 49.99, 99.99),
+                ("Strategy Board Game Collection", "Hasbro", 19.99, 49.99),
+                ("Remote Control Racing Drone", "DJI", 99.99, 299.99),
+                ("Wooden Puzzle Brain Teaser Set", "Melissa & Doug", 14.99, 29.99),
+                ("Interactive Learning Tablet Kids", "LeapFrog", 79.99, 149.99),
+            ],
+            "Automotive": [
+                ("Dash Camera 4K Night Vision", "Vantrue", 89.99, 199.99),
+                ("Portable Tire Inflator Digital", "AstroAI", 29.99, 59.99),
+                ("LED Headlight Bulbs H11 Pair", "Sylvania", 24.99, 49.99),
+                ("Car Phone Mount Magnetic", "iOttie", 14.99, 34.99),
+                ("All-Weather Floor Mats Set", "WeatherTech", 49.99, 149.99),
+            ],
+            "Grocery & Gourmet": [
+                ("Organic Cold Brew Coffee Concentrate", "Chameleon", 9.99, 16.99),
+                ("Dark Chocolate Truffle Collection", "Lindt", 14.99, 34.99),
+                ("Extra Virgin Olive Oil 1L", "Bertolli", 9.99, 19.99),
+                ("Matcha Green Tea Powder Premium", "Jade Leaf", 19.99, 34.99),
+                ("Mixed Nuts Trail Mix 2lb", "Kirkland", 12.99, 24.99),
+            ],
+            "Pet Supplies": [
+                ("Automatic Pet Feeder Smart WiFi", "PetSafe", 79.99, 149.99),
+                ("Orthopedic Dog Bed Large", "Furhaven", 29.99, 79.99),
+                ("Interactive Cat Toy Laser", "PetFusion", 14.99, 29.99),
+                ("Retractable Dog Leash 16ft", "Flexi", 14.99, 29.99),
+                ("Grain-Free Dog Treats 1lb", "Blue Buffalo", 9.99, 19.99),
+            ],
+            "Health & Wellness": [
+                ("Digital Blood Pressure Monitor", "Omron", 39.99, 79.99),
+                ("Foam Roller Muscle Recovery", "TriggerPoint", 19.99, 44.99),
+                ("Vitamin D3 5000 IU 360ct", "NatureWise", 14.99, 24.99),
+                ("Meditation Cushion Zafu", "Florensi", 29.99, 59.99),
+                ("Pulse Oximeter Fingertip", "Zacurate", 14.99, 29.99),
+            ],
+            "Garden & Outdoor": [
+                ("Solar Pathway Lights 12-Pack", "BEAU JARDIN", 24.99, 49.99),
+                ("Stainless Steel Garden Tool Set", "Fiskars", 29.99, 59.99),
+                ("Portable Hammock with Stand", "Vivere", 69.99, 149.99),
+                ("Self-Watering Planter Large", "Lechuza", 34.99, 79.99),
+                ("Outdoor String Lights 48ft", "Brightech", 19.99, 39.99),
+            ],
+            "Office Products": [
+                ("Ergonomic Office Chair Mesh", "Herman Miller", 299.99, 599.99),
+                ("Standing Desk Converter 36\"", "FlexiSpot", 149.99, 349.99),
+                ("Wireless Presentation Clicker", "Logitech", 24.99, 49.99),
+                ("Document Scanner Portable", "Fujitsu", 199.99, 399.99),
+                ("Noise Machine White Sound", "LectroFan", 29.99, 59.99),
+            ],
+            "Tools & Home Improvement": [
+                ("Cordless Drill Driver 20V", "DeWalt", 79.99, 149.99),
+                ("LED Work Light Rechargeable", "Milwaukee", 29.99, 69.99),
+                ("Digital Laser Measure 165ft", "Bosch", 39.99, 89.99),
+                ("Smart Thermostat WiFi Enabled", "Nest", 129.99, 249.99),
+                ("Multi-Tool Pliers 18-in-1", "Leatherman", 49.99, 99.99),
+            ],
+            "Baby Care": [
+                ("Baby Monitor Camera WiFi 1080p", "VTech", 49.99, 129.99),
+                ("Organic Baby Wipes 720ct", "WaterWipes", 19.99, 34.99),
+                ("Convertible Car Seat All-in-One", "Graco", 149.99, 349.99),
+                ("Baby Carrier Ergonomic Wrap", "Ergobaby", 79.99, 179.99),
+                ("Silicone Baby Feeding Set", "Bumkins", 14.99, 29.99),
+            ],
+        }
+
+        # Build category name -> category object lookup
+        cat_lookup = {c.name: c for c in categories}
+
         products = []
+        product_idx = 0
+        # Flatten catalog entries across all categories
+        all_entries: list[tuple[str, str, str, float, float]] = []
+        for cat_name, items in product_catalog.items():
+            for name, brand_name, p_min, p_max in items:
+                all_entries.append((cat_name, name, brand_name, p_min, p_max))
+
         for i in range(100):
-            cat = random.choice(categories)  # Associated with any category
+            entry = all_entries[i % len(all_entries)]
+            cat_name, prod_name, brand_name, p_min, p_max = entry
+            cat = cat_lookup.get(cat_name, random.choice(categories))
+
             is_deleted = i < 10  # 10% soft deleted
             deleted_at = datetime.datetime.now(datetime.UTC) if is_deleted else None
             is_active = i >= 10
 
-            initial_stock = random.randint(15, 120)
-            price = Decimal(f"{random.uniform(5.99, 899.99):.2f}")
-            prod_name = f"{fake.word().capitalize()} {fake.word().capitalize()}"
+            initial_stock = random.randint(2, 120)
+            price = Decimal(f"{random.uniform(p_min, p_max):.2f}")
+            # Append index suffix for uniqueness when catalog wraps around
+            display_name = prod_name if i < len(all_entries) else f"{prod_name} v{i // len(all_entries) + 1}"
 
             product = Product(
                 category_id=cat.id,
-                name=prod_name,
-                slug=f"{prod_name.lower().replace(' ', '-')}-{i}",
+                name=display_name,
+                slug=f"{display_name.lower().replace(' ', '-').replace('\"', '')}-{i}",
                 description=fake.paragraph(),
-                brand=fake.company()[:100],
+                brand=brand_name,
                 image_url=f"https://picsum.photos/seed/product{i}/400/300",
                 price=price,
                 stock=initial_stock,
