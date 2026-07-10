@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: journeyiq_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-journeyiq}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-journeyiq}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - journeyiq_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: journeyiq_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-journeyiq}
+      - SECRET_KEY=${SECRET_KEY:-replace-with-a-very-secure-secret-key-for-production}
+      - JWT_SECRET=${JWT_SECRET:-replace-with-a-very-secure-jwt-secret-for-production}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
+      - ENVIRONMENT=development
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/v1/health\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - journeyiq_net
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: journeyiq_ml_service
+    restart: always
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./ml-service:/app
+    networks:
+      - journeyiq_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: journeyiq_frontend
+    restart: always
+    environment:
+      - VITE_BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:5173\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - journeyiq_net
+
+volumes:
+  postgres_data:
+
+networks:
+  journeyiq_net:
+    driver: bridge

@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "contact": "Contact",
+    "platformName": "JourneyIQ"
+  },
+  "hero": {
+    "badge": "Introducing JourneyIQ v1.0",
+    "title": "Optimize Customer Journeys with Real-time Intelligence",
+    "subtitle": "Analyze, predict, and personalize customer experiences at scale. Build high-converting funnels using machine learning-driven recommendations.",
+    "ctaStart": "Get Started",
+    "ctaDemo": "Book a Demo"
+  },
+  "features": {
+    "sectionTitle": "Platform Capabilities",
+    "sectionSubtitle": "Everything you need to deliver tailored shopping journeys that drive conversion and customer loyalty.",
+    "f1": {
+      "title": "Behavior Tracking",
+      "desc": "Track mouse movement, clicks, and page dwell time asynchronously with minimal frontend footprint."
+    },
+    "f2": {
+      "title": "Real-time Personalization",
+      "desc": "Dynamically restructure layouts and product sorting based on active session user heuristics."
+    },
+    "f3": {
+      "title": "Predictive Analytics",
+      "desc": "Calculate churn risk and customer lifetime value (CLV) scores instantly using machine learning models."
+    },
+    "f4": {
+      "title": "A/B Experimentation",
+      "desc": "Launch and measure cohort performance using robust statistical confidence testing engines."
+    }
+  },
+  "footer": {
+    "copyright": "© {{year}} JourneyIQ Inc. All rights reserved.",
+    "builtFor": "Phase 1 - Enterprise Foundation Architecture"
+  }
+}
