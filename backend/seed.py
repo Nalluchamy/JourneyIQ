@@ -147,7 +147,7 @@ async def seed_database() -> None:
             # Automotive
             ("Automotive", "Vantrue N4 3-Channel 4K Dash Cam", "Vantrue", 199.99, "https://images.unsplash.com/photo-1508962914676-134849a727f0?w=600&auto=format&fit=crop&q=80"),
             # Grocery & Gourmet
-            ("Grocery & Gourmet", "Lindt Excellence Dark Chocolate Bar", "Lindt", 4.29, "https://images.unsplash.com/photo-1548907040-4d42b52125b0?w=600&auto=format&fit=crop&q=80"),
+            ("Grocery & Gourmet", "Lindt Excellence Dark Chocolate Bar", "Lindt", 4.29, "https://images.unsplash.com/photo-1549007994-cb92ca87df46?w=600&auto=format&fit=crop&q=80"),
             # Office Products
             ("Office Products", "Herman Miller Aeron Office Chair", "Herman Miller", 995.00, "https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?w=600&auto=format&fit=crop&q=80"),
             # Tools & Home Improvement
