@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -87,3 +87,25 @@ async def get_products(
 
     paginated_data = await paginate(db, query, page, size)
     return paginated_data
+
+
+@router.get(
+    "/{product_id}",
+    response_model=ProductRead,
+    summary="Get a single product by ID",
+)
+async def get_product(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """Retrieve a single product by its ID, excluding soft-deleted products."""
+    result = await db.execute(
+        select(Product).where(Product.id == product_id, Product.is_deleted == False)
+    )
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found.",
+        )
+    return product
