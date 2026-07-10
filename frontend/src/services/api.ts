@@ -182,7 +182,72 @@ export const eventsApi = {
 
 export const ordersApi = {
   getMyOrders: async () => {
-    const res = await apiClient.get('/api/v1/orders/me');
+    const res = await apiClient.get('/api/v1/orders/history');
     return res.data; // returns paginated results
+  },
+  getOrderDetails: async (id: number) => {
+    const res = await apiClient.get(`/api/v1/orders/${id}`);
+    return res.data;
+  },
+  cancelOrder: async (id: number) => {
+    const res = await apiClient.patch(`/api/v1/orders/${id}/cancel`);
+    return res.data;
+  },
+  getInvoice: async (id: number) => {
+    const res = await apiClient.get(`/api/v1/orders/${id}/invoice`);
+    return res.data;
+  },
+};
+
+export const addressesApi = {
+  getAddresses: async () => {
+    const res = await apiClient.get('/api/v1/addresses');
+    return res.data;
+  },
+  createAddress: async (data: any) => {
+    const res = await apiClient.post('/api/v1/addresses', data);
+    return res.data;
+  },
+  updateAddress: async (id: number, data: any) => {
+    const res = await apiClient.put(`/api/v1/addresses/${id}`, data);
+    return res.data;
+  },
+  deleteAddress: async (id: number) => {
+    const res = await apiClient.delete(`/api/v1/addresses/${id}`);
+    return res.data;
+  },
+};
+
+export const couponsApi = {
+  getCoupons: async () => {
+    const res = await apiClient.get('/api/v1/coupons');
+    return res.data;
+  },
+  applyCoupon: async (code: string, cartTotal: number) => {
+    const res = await apiClient.post('/api/v1/checkout/apply-coupon', { code, cart_total: cartTotal });
+    return res.data;
+  },
+};
+
+export const checkoutApi = {
+  getSummary: async (couponCode?: string) => {
+    const params = couponCode ? { coupon_code: couponCode } : {};
+    const res = await apiClient.get('/api/v1/cart/summary', { params });
+    return res.data;
+  },
+  checkout: async (data: { shipping_address_id: number; coupon_code?: string }) => {
+    const res = await apiClient.post('/api/v1/checkout', data);
+    return res.data;
+  },
+};
+
+export const paymentsApi = {
+  mockSuccess: async (orderId: number) => {
+    const res = await apiClient.post(`/api/v1/payments/mock-success/${orderId}`);
+    return res.data;
+  },
+  mockFailure: async (orderId: number) => {
+    const res = await apiClient.post(`/api/v1/payments/mock-failure/${orderId}`);
+    return res.data;
   },
 };

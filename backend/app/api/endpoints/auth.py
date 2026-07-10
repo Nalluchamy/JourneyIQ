@@ -92,7 +92,7 @@ async def register(
         password_hash=hashed_pw,
         phone=user_in.phone,
         role="customer",
-        is_verified=True,
+        is_verified=not settings.REQUIRE_EMAIL_VERIFICATION,
     )
     db.add(user)
     await db.flush()  # Resolve user.id
@@ -120,12 +120,19 @@ async def register(
     db.add(db_rt)
 
     await log_event(db, request, "login", user_id=user.id)
+    
+    # Trigger verification email (mocked) to satisfy tests and confirm registration
+    mail_service = get_mail_service()
+    await mail_service.send_verification_email(user.email)
+
     await db.commit()
 
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
+        "email": user.email,
+        "full_name": user.full_name,
     }
 
 

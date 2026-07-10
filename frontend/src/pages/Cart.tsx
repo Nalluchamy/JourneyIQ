@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingCart, ArrowRight, Minus, Plus, PackageOpen, AlertTriangle } from 'lucide-react';
 import { cartApi } from '../services/api';
 
 export const Cart: React.FC = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isAuthenticated = !!localStorage.getItem('token');
   const [toastMsg, setToastMsg] = useState('');
@@ -246,7 +247,7 @@ export const Cart: React.FC = () => {
             </div>
 
             <button
-              onClick={() => triggerToast('Checkout will be available in Phase 5.')}
+              onClick={() => navigate('/checkout')}
               className="w-full flex items-center justify-center space-x-2 rounded-xl bg-primary py-3 text-sm font-bold text-white transition-all hover:bg-primary/90"
             >
               <span>Proceed to Checkout</span>

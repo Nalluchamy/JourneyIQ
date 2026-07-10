@@ -11,6 +11,10 @@ import { Profile } from './pages/Profile';
 import { Login } from './pages/Login';
 import { About } from './pages/About';
 import { Contact } from './pages/Contact';
+import { AddressManagement } from './pages/AddressManagement';
+import { Checkout } from './pages/Checkout';
+import { OrderHistory } from './pages/OrderHistory';
+import { OrderDetails } from './pages/OrderDetails';
 
 // Bootstrap localization settings
 import './i18n/i18n';
@@ -40,6 +44,10 @@ const App: React.FC = () => {
             <Route path="login" element={<Login />} />
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="address" element={<AddressManagement />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="orders" element={<OrderHistory />} />
+            <Route path="orders/:id" element={<OrderDetails />} />
           </Route>
         </Routes>
       </BrowserRouter>

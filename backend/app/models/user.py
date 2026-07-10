@@ -14,6 +14,8 @@ if TYPE_CHECKING:
     from app.models.refresh_token import RefreshToken
     from app.models.review import Review
     from app.models.segment import Segment
+    from app.models.shipping_address import ShippingAddress
+    from app.models.coupon_usage import CouponUsage
 
 
 class User(BaseModel, SoftDeleteMixin):
@@ -61,5 +63,11 @@ class User(BaseModel, SoftDeleteMixin):
         back_populates="user", cascade="all, delete-orphan"
     )
     audit_logs: Mapped[list["AuditLog"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    shipping_addresses: Mapped[list["ShippingAddress"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    coupon_usages: Mapped[list["CouponUsage"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

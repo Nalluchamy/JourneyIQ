@@ -14,6 +14,10 @@ from app.models.refresh_token import RefreshToken
 from app.models.audit_log import AuditLog
 from app.models.wishlist_item import WishlistItem
 from app.models.cart_item import CartItem
+from app.models.shipping_address import ShippingAddress
+from app.models.order_status_history import OrderStatusHistory
+from app.models.coupon import Coupon
+from app.models.coupon_usage import CouponUsage
 
 __all__ = [
     "Base",
@@ -33,4 +37,8 @@ __all__ = [
     "AuditLog",
     "WishlistItem",
     "CartItem",
+    "ShippingAddress",
+    "OrderStatusHistory",
+    "Coupon",
+    "CouponUsage",
 ]

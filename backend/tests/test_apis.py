@@ -153,8 +153,15 @@ async def test_get_products_api(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("seed_api_data")
-async def test_get_orders_api(client: AsyncClient) -> None:
-    response = await client.get("/api/v1/orders")
+async def test_get_orders_api(client: AsyncClient, db_session: AsyncSession) -> None:
+    from sqlalchemy import select
+    from app.core.security import create_access_token
+    user_stmt = select(User).where(User.email == "active@example.com")
+    user = (await db_session.execute(user_stmt)).scalar_one()
+    token = create_access_token(user.id)
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = await client.get("/api/v1/orders", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1

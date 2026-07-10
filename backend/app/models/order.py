@@ -10,6 +10,9 @@ if TYPE_CHECKING:
     from app.models.order_item import OrderItem
     from app.models.payment import Payment
     from app.models.user import User
+    from app.models.shipping_address import ShippingAddress
+    from app.models.order_status_history import OrderStatusHistory
+    from app.models.coupon_usage import CouponUsage
 
 
 class Order(BaseModel):
@@ -29,6 +32,10 @@ class Order(BaseModel):
         Numeric(10, 2), default=Decimal("0.00"), server_default="0.00", nullable=False
     )
     total: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    invoice_number: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True, index=True)
+    shipping_address_id: Mapped[int | None] = mapped_column(
+        ForeignKey("shippingaddress.id", ondelete="SET NULL"), nullable=True
+    )
 
     __table_args__ = (
         CheckConstraint("subtotal >= 0", name="check_order_subtotal_non_negative"),
@@ -43,5 +50,12 @@ class Order(BaseModel):
         back_populates="order", cascade="all, delete-orphan"
     )
     payments: Mapped[list["Payment"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
+    shipping_address: Mapped["ShippingAddress | None"] = relationship()
+    status_history: Mapped[list["OrderStatusHistory"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
+    coupon_usages: Mapped[list["CouponUsage"]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )
