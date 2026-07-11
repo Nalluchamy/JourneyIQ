@@ -21,29 +21,22 @@ from app.services.analytics.insights import AIInsightsService
 
 router = APIRouter()
 
-# Global TTL cache dictionary
-# Key: cache_key string, Value: (timestamp, data)
-ANALYTICS_CACHE: dict[str, tuple[datetime.datetime, Any]] = {}
-CACHE_TTL_SECONDS = 900  # 15 minutes cache lifetime
+from app.core.cache import cache
 
 
 def get_cached_data(key: str) -> Optional[Any]:
-    """Retrieve non-expired data from memory cache."""
-    if key in ANALYTICS_CACHE:
-        timestamp, data = ANALYTICS_CACHE[key]
-        if (datetime.datetime.now() - timestamp).total_seconds() < CACHE_TTL_SECONDS:
-            return data
-    return None
+    """Retrieve non-expired data from application cache."""
+    return cache.get(key)
 
 
 def set_cached_data(key: str, data: Any) -> None:
-    """Store data in memory cache with timestamp."""
-    ANALYTICS_CACHE[key] = (datetime.datetime.now(), data)
+    """Store data in application cache."""
+    cache.set(key, data, ttl_seconds=900)
 
 
 def clear_analytics_cache() -> None:
     """Clear all dashboard cache records."""
-    ANALYTICS_CACHE.clear()
+    cache.clear()
 
 
 def check_owner_access(current_user: User) -> None:

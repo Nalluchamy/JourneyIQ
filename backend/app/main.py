@@ -41,14 +41,21 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+from fastapi.middleware.gzip import GZipMiddleware
+from app.middleware.security import SecurityHeadersMiddleware, RequestTimeoutMiddleware
+
 # Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.FRONTEND_URL, "http://localhost:5173"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestTimeoutMiddleware)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 # Request ID Middleware
@@ -65,7 +72,11 @@ async def request_id_middleware(
 
     # Inject request_id into state & logger context
     request.state.request_id = request_id
-    bind_contextvars(request_id=request_id)
+    bind_contextvars(
+        request_id=request_id,
+        endpoint=request.url.path,
+        method=request.method,
+    )
 
     start_time = time.time()
 

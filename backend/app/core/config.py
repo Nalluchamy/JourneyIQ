@@ -27,5 +27,8 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:5173"
     BACKEND_URL: str = "http://localhost:8000"
 
+    # Redis Caching (Optional)
+    REDIS_URL: str | None = None
+
 
 settings = Settings()

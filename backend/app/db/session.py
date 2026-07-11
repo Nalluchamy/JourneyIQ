@@ -24,6 +24,25 @@ engine = create_async_engine(
     max_overflow=10,  # max temporary connections beyond pool_size
 )
 
+# Slow Query Logging Event Listeners
+import time
+from sqlalchemy import event
+
+@event.listens_for(engine.sync_engine, "before_cursor_execute")
+def before_cursor_execute(conn, cursor, statement, parameters, context, execmany):
+    context._query_start_time = time.time()
+
+@event.listens_for(engine.sync_engine, "after_cursor_execute")
+def after_cursor_execute(conn, cursor, statement, parameters, context, execmany):
+    if hasattr(context, "_query_start_time"):
+        total_time = time.time() - context._query_start_time
+        if total_time > 0.5:
+            logger.warning(
+                "Slow database query detected",
+                query=statement,
+                duration_ms=round(total_time * 1000, 2),
+            )
+
 # Async session maker
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

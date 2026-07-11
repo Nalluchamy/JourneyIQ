@@ -1,26 +1,60 @@
 import asyncio
+import time
 import structlog
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import SessionLocal
+from app.db.session import AsyncSessionLocal
 from app.services.ml.recommendation_service import RecommendationService
 
 logger = structlog.get_logger()
 
-# Global cancel handle
+# Global status tracking for container readiness checks
+SCHEDULER_HEALTH = {
+    "status": "healthy",
+    "last_run": None,
+    "consecutive_failures": 0,
+    "last_error": None
+}
+
 _scheduler_task: asyncio.Task | None = None
 
 
 async def run_daily_pipeline() -> None:
-    """Runs recommendation computation loop."""
+    """Runs recommendation computation loop with retry policies."""
     while True:
         logger.info("Running scheduled daily recommendations generation")
-        async with SessionLocal() as db:
-            service = RecommendationService(db)
+        success = False
+        backoff = 5.0
+        
+        # 1 initial run + 3 retries = 4 total attempts
+        for attempt in range(4):
             try:
-                await service.compute_and_persist_recommendations()
+                async with AsyncSessionLocal() as db:
+                    service = RecommendationService(db)
+                    await service.compute_and_persist_recommendations()
+                
+                success = True
+                SCHEDULER_HEALTH["status"] = "healthy"
+                SCHEDULER_HEALTH["consecutive_failures"] = 0
+                SCHEDULER_HEALTH["last_run"] = time.time()
+                logger.info("Daily recommendations generation completed successfully")
+                break
             except Exception as e:
-                logger.error("Error in scheduled recommendation pipeline", error=str(e))
+                SCHEDULER_HEALTH["consecutive_failures"] += 1
+                SCHEDULER_HEALTH["last_error"] = str(e)
+                logger.error(
+                    "Recommendation pipeline attempt failed",
+                    attempt=attempt + 1,
+                    error=str(e)
+                )
+                if attempt < 3:
+                    logger.info(f"Retrying pipeline execution in {backoff} seconds...")
+                    await asyncio.sleep(backoff)
+                    backoff *= 2.0
+        
+        if not success:
+            SCHEDULER_HEALTH["status"] = "degraded"
+            logger.error("Daily recommendation pipeline completely failed after all retries.")
         
         # Sleep for 24 hours
         await asyncio.sleep(86400)
