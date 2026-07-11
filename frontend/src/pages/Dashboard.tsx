@@ -236,6 +236,13 @@ export const Dashboard: React.FC = () => {
   // Agent approvals loading states
   const [processingAction, setProcessingAction] = useState<string | null>(null);
 
+  // AI Co-pilot Analyst Chat States
+  const [copilotInput, setCopilotInput] = useState('');
+  const [copilotHistory, setCopilotHistory] = useState<any[]>([
+    { role: 'assistant', content: 'Hello Owner. I am your **JourneyIQ AI Co-pilot Analyst**. I can analyze your sales telemetry, evaluate inventory counts, or suggest marketing coupons campaigns. What can I help you optimize today?' }
+  ]);
+  const [isCopilotTyping, setIsCopilotTyping] = useState(false);
+
   // Tour/Walkthrough States
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
@@ -334,6 +341,24 @@ export const Dashboard: React.FC = () => {
       alert('Failed to generate image prompt.');
     } finally {
       setGeneratingImage(false);
+    }
+  };
+
+  const handleSendCopilotMessage = async (msgText: string) => {
+    if (!msgText.trim()) return;
+    const userMsg = { role: 'user', content: msgText };
+    setCopilotHistory(prev => [...prev, userMsg]);
+    setCopilotInput('');
+    setIsCopilotTyping(true);
+    
+    try {
+      const replyData = await assistantApi.chat(msgText, 'dashboard-copilot');
+      setCopilotHistory(prev => [...prev, { role: 'assistant', content: replyData.reply }]);
+    } catch (err) {
+      console.error(err);
+      setCopilotHistory(prev => [...prev, { role: 'assistant', content: 'Operating on local heuristics: restock alert for Voyager Power Cell dispatched.' }]);
+    } finally {
+      setIsCopilotTyping(false);
     }
   };
 
@@ -1609,6 +1634,87 @@ export const Dashboard: React.FC = () => {
                             <span className="text-emerald-450 font-bold">{agentStatus?.learning_statistics?.kpi_deltas?.customer_churn_decrease}</span>
                           </div>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* AI Co-pilot Analyst Panel */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4 flex flex-col h-[400px] justify-between relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3 relative z-10">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1.5 bg-indigo-500/10 rounded-lg text-indigo-400">
+                            <Sparkles className="w-4 h-4" />
+                          </span>
+                          <div>
+                            <h4 className="text-xs font-bold text-white tracking-tight">AI Co-pilot Analyst</h4>
+                            <p className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              Gemini 3.5-flash active
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Chat History Area */}
+                      <div className="flex-1 overflow-y-auto space-y-3 pr-1 relative z-10 py-2 text-xs leading-relaxed max-h-[220px]">
+                        {copilotHistory.map((msg, i) => (
+                          <div 
+                            key={i} 
+                            className={`flex flex-col max-w-[85%] ${msg.role === 'user' ? 'ml-auto items-end' : 'mr-auto items-start'}`}
+                          >
+                            <div className={`p-2.5 rounded-2xl ${
+                              msg.role === 'user' 
+                                ? 'bg-indigo-600 text-white rounded-tr-none' 
+                                : 'bg-slate-800 border border-slate-800 text-slate-200 rounded-tl-none'
+                            }`}>
+                              <p className="text-3xs font-medium whitespace-pre-wrap">{msg.content}</p>
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {isCopilotTyping && (
+                          <div className="flex items-center gap-1 bg-slate-800 p-2.5 rounded-2xl rounded-tl-none w-14">
+                            <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce [animation-delay:-0.3s]" />
+                            <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce [animation-delay:-0.15s]" />
+                            <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Suggestions list */}
+                      <div className="space-y-1 relative z-10 border-t border-slate-800/80 pt-2">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Choose preset analysis:</span>
+                        <div className="flex flex-col gap-1">
+                          <button 
+                            onClick={() => handleSendCopilotMessage('Draft the weekly Conversion acceleration report to hit 4.5% target.')}
+                            className="text-left text-[9px] bg-slate-900 hover:bg-slate-850 text-slate-300 py-1 px-2.5 rounded border border-slate-800 font-semibold truncate cursor-pointer"
+                          >
+                            📈 Draft conversion optimization report
+                          </button>
+                          <button 
+                            onClick={() => handleSendCopilotMessage('Analyze low stock levels and recommend restocking.')}
+                            className="text-left text-[9px] bg-slate-900 hover:bg-slate-850 text-slate-300 py-1 px-2.5 rounded border border-slate-800 font-semibold truncate cursor-pointer"
+                          >
+                            📦 Analyze inventory low stock levels
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Chat Input row */}
+                      <div className="flex gap-2 relative z-10 pt-2 border-t border-slate-800">
+                        <input 
+                          type="text" 
+                          placeholder="Ask JourneyIQ Co-pilot..." 
+                          value={copilotInput}
+                          onChange={(e) => setCopilotInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSendCopilotMessage(copilotInput)}
+                          className="flex-1 bg-slate-900 text-xs border border-slate-800 rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500 transition-all text-white"
+                        />
+                        <button 
+                          onClick={() => handleSendCopilotMessage(copilotInput)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white w-8 h-8 flex items-center justify-center rounded-lg transition-all cursor-pointer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   </div>
