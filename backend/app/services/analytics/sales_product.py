@@ -62,7 +62,7 @@ class SalesProductAnalyticsService:
         res = await self.db.execute(orders_stmt)
         orders = res.scalars().all()
 
-        confirmed_orders = [o for o in orders if o.status == "confirmed"]
+        confirmed_orders = [o for o in orders if o.status in ("confirmed", "completed", "shipped")]
         total_revenue = sum(float(o.total) for o in confirmed_orders)
         order_count = len(confirmed_orders)
         aov = total_revenue / order_count if order_count > 0 else 0.0
@@ -93,14 +93,14 @@ class SalesProductAnalyticsService:
         yesterday_start = datetime.datetime.combine(now.date() - datetime.timedelta(days=1), datetime.time.min, tzinfo=datetime.UTC)
         yesterday_end = datetime.datetime.combine(now.date() - datetime.timedelta(days=1), datetime.time.max, tzinfo=datetime.UTC)
 
-        stmt_yesterday = select(Order).where(Order.status == "confirmed", Order.created_at >= yesterday_start, Order.created_at <= yesterday_end)
+        stmt_yesterday = select(Order).where(Order.status.in_(["confirmed", "completed", "shipped"]), Order.created_at >= yesterday_start, Order.created_at <= yesterday_end)
         yesterday_orders = (await self.db.execute(stmt_yesterday)).scalars().all()
         yesterday_revenue = sum(float(o.total) for o in yesterday_orders)
         yesterday_count = len(yesterday_orders)
 
         # Today's stats
         today_start = datetime.datetime.combine(now.date(), datetime.time.min, tzinfo=datetime.UTC)
-        stmt_today = select(Order).where(Order.status == "confirmed", Order.created_at >= today_start)
+        stmt_today = select(Order).where(Order.status.in_(["confirmed", "completed", "shipped"]), Order.created_at >= today_start)
         today_orders = (await self.db.execute(stmt_today)).scalars().all()
         today_revenue = sum(float(o.total) for o in today_orders)
         today_count = len(today_orders)
@@ -119,7 +119,7 @@ class SalesProductAnalyticsService:
             orders_delta = 100.0
 
         # Returning customer rate
-        stmt_cust = select(Order.user_id, func.count(Order.id)).where(Order.status == "confirmed").group_by(Order.user_id)
+        stmt_cust = select(Order.user_id, func.count(Order.id)).where(Order.status.in_(["confirmed", "completed", "shipped"])).group_by(Order.user_id)
         cust_res = await self.db.execute(stmt_cust)
         rows = cust_res.all()
         returning_customers = len([r for r in rows if r[1] > 1])

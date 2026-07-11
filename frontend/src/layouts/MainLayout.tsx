@@ -252,7 +252,7 @@ export const MainLayout: React.FC = () => {
               <span>{t('footer.copyright', { year: new Date().getFullYear() })}</span>
             </div>
 
-            <div className="text-xs text-muted-foreground">JourneyIQ Enterprise Storefront</div>
+            <div className="text-xs text-muted-foreground">JourneyIQ v1.0.0 | AI-Powered Customer Journey Intelligence</div>
           </div>
         </div>
       </footer>
