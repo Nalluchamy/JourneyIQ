@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MainLayout } from './layouts/MainLayout';
 import { Home } from './pages/Home';
@@ -15,6 +15,7 @@ import { AddressManagement } from './pages/AddressManagement';
 import { Checkout } from './pages/Checkout';
 import { OrderHistory } from './pages/OrderHistory';
 import { OrderDetails } from './pages/OrderDetails';
+import { Dashboard } from './pages/Dashboard';
 
 // Bootstrap localization settings
 import './i18n/i18n';
@@ -48,6 +49,8 @@ const App: React.FC = () => {
             <Route path="checkout" element={<Checkout />} />
             <Route path="orders" element={<OrderHistory />} />
             <Route path="orders/:id" element={<OrderDetails />} />
+            <Route path="dashboard" element={<Navigate to="/dashboard/overview" replace />} />
+            <Route path="dashboard/:tab" element={<Dashboard />} />
           </Route>
         </Routes>
       </BrowserRouter>

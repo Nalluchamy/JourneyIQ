@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Menu, X, Rocket, Heart, ShoppingCart, User, LogOut } from 'lucide-react';
-import { cartApi, wishlistApi, eventsApi } from '../services/api';
+import { cartApi, wishlistApi, eventsApi, authApi } from '../services/api';
 
 export const MainLayout: React.FC = () => {
   const { t } = useTranslation();
@@ -40,6 +40,13 @@ export const MainLayout: React.FC = () => {
     }
   }, [location.pathname]);
 
+  // Fetch profile to verify if user is admin
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: authApi.getProfile,
+    enabled: isAuthenticated,
+  });
+
   // Fetch cart & wishlist queries to display badges in header
   const { data: cart } = useQuery({
     queryKey: ['cart'],
@@ -68,6 +75,9 @@ export const MainLayout: React.FC = () => {
     { name: t('nav.home'), path: '/' },
     { name: t('nav.products'), path: '/products' },
   ];
+  if (profile?.role === 'admin') {
+    navItems.push({ name: 'Dashboard', path: '/dashboard/overview' });
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
