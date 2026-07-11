@@ -10,7 +10,7 @@ structlog>=24.4.0
 # Code Quality Tools
 ruff>=0.5.1
 black>=24.4.2
-isort>=5.13.2
+isort>=8.0.1
 mypy>=1.10.1
 
 # Seeding & Testing
