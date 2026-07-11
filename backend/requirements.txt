@@ -5,7 +5,7 @@ asyncpg>=0.29.0
 psycopg2-binary>=2.9.9
 pydantic-settings>=2.3.4
 alembic>=1.13.2
-structlog>=24.4.0
+structlog>=26.1.0
 
 # Code Quality Tools
 ruff>=0.5.1
