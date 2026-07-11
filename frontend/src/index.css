@@ -147,16 +147,20 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 /* Global Overrides for Light UX */
-h1, h2, h3, h4, h5, h6, .text-white {
+body {
   color: #1e293b !important;
 }
 
-.text-muted-foreground, .text-slate-400, .text-slate-350, .text-slate-300 {
+h1, h2, h3, h4, h5, h6, .font-display {
+  color: #0f172a !important;
+}
+
+.text-muted-foreground, .text-slate-450, .text-slate-500 {
   color: #4b5563 !important;
 }
 
 .bg-white\/5 {
-  background-color: rgba(255, 255, 255, 0.8) !important;
+  background-color: rgba(255, 255, 255, 0.75) !important;
   border-color: rgba(226, 223, 235, 0.6) !important;
 }
 
@@ -169,7 +173,7 @@ h1, h2, h3, h4, h5, h6, .text-white {
   border-color: #e2dfeb !important;
 }
 
-.bg-slate-900, .bg-[#111827] {
+.bg-slate-900, .bg-\[\#111827\], .bg-\[\#0a0f1e\], .bg-slate-950 {
   background-color: #ffffff !important;
   border-color: #e2dfeb !important;
 }
@@ -177,5 +181,37 @@ h1, h2, h3, h4, h5, h6, .text-white {
 .border-slate-800, .border-slate-850 {
   border-color: #e2dfeb !important;
 }
+
+/* Ensure text inside standard light dashboard cards and tables is dark slate for high contrast */
+.bg-slate-900 *, .bg-\[\#111827\] *, .bg-\[\#0a0f1e\] *, .glass-morphism *, .glass-morphism-premium * {
+  color: #1e293b;
+}
+
+/* Retain high-contrast white text for primary actions, buttons, and status labels */
+button, button *, 
+.bg-indigo-600, .bg-indigo-600 *, 
+.bg-emerald-600, .bg-emerald-600 *,
+.bg-rose-500, .bg-rose-500 *, 
+.bg-rose-600, .bg-rose-600 *,
+.bg-primary, .bg-primary *,
+.bg-secondary, .bg-secondary *,
+.text-white-force {
+  color: #ffffff !important;
+}
+
+/* Style the dashboard sidebar links for light mode */
+aside a, aside button, nav a, nav button {
+  color: #334155 !important;
+}
+
+aside a:hover, aside button:hover, nav a:hover, nav button:hover {
+  color: #3525cd !important;
+}
+
+/* Muted spans */
+span.text-slate-400, span.text-slate-300, p.text-slate-300, p.text-slate-400 {
+  color: #4b5563 !important;
+}
+
 
 
