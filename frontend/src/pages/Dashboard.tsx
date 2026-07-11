@@ -44,6 +44,7 @@ export const Dashboard: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [modelView, setModelView] = useState<'hybrid' | 'deep' | 'both'>('both');
 
   // Parallel API queries loading
   const { data: overview, refetch: refetchOverview, isFetching: isFetchingOverview } = useQuery({
@@ -109,6 +110,14 @@ export const Dashboard: React.FC = () => {
     },
   });
 
+  const { data: comparison, refetch: refetchComparison } = useQuery({
+    queryKey: ['dashboard_model_comparison'],
+    queryFn: async () => {
+      const res = await apiClient.get('/api/v1/recommendations/deep/compare');
+      return res.data.data;
+    },
+  });
+
   // Actions
   const refreshMutation = useMutation({
     mutationFn: async () => {
@@ -121,6 +130,7 @@ export const Dashboard: React.FC = () => {
       refetchOrders();
       refetchAnalyticsData();
       refetchInsights();
+      refetchComparison();
     },
   });
 
@@ -157,6 +167,7 @@ export const Dashboard: React.FC = () => {
     { key: 'orders', label: 'Orders', icon: <Percent className="h-4 w-4" /> },
     { key: 'analytics', label: 'Analytics', icon: <Layers className="h-4 w-4" /> },
     { key: 'insights', label: 'AI Insights', icon: <Sparkles className="h-4 w-4" /> },
+    { key: 'models', label: 'Model Performance', icon: <Activity className="h-4 w-4" /> },
   ];
 
   return (
@@ -665,6 +676,245 @@ export const Dashboard: React.FC = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 7. MODELS TAB */}
+              {tab === 'models' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                      <Activity className="h-5 w-5 text-indigo-400" />
+                      <span>Deep Learning & Model Comparison</span>
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Telemetry comparison between Hybrid Collaborative filtering and PyTorch Neural Collaborative Filtering (NCF).
+                    </p>
+                  </div>
+
+                  {/* Telemetry and Metrics Overview Cards */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+                      <span className="text-2xs font-extrabold text-muted-foreground uppercase tracking-wider block">Active Version</span>
+                      <div className="text-2xl font-black text-white">{comparison?.metadata?.active_version || 'N/A'}</div>
+                      <span className="text-2xs text-muted-foreground">PyTorch latest.pt checkpoint</span>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+                      <span className="text-2xs font-extrabold text-muted-foreground uppercase tracking-wider block">Training Duration</span>
+                      <div className="text-2xl font-black text-white">
+                        {comparison?.metadata?.training_time ? `${comparison.metadata.training_time}s` : 'N/A'}
+                      </div>
+                      <span className="text-2xs text-muted-foreground">Epochs completed: {comparison?.metadata?.best_epoch || 0}</span>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+                      <span className="text-2xs font-extrabold text-muted-foreground uppercase tracking-wider block">Hit Rate (HR@10)</span>
+                      <div className="text-2xl font-black text-white">
+                        {comparison?.metrics?.hit_rate !== undefined ? `${(comparison.metrics.hit_rate * 100).toFixed(1)}%` : 'N/A'}
+                      </div>
+                      <span className="text-2xs text-muted-foreground">Validation hit frequency</span>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+                      <span className="text-2xs font-extrabold text-muted-foreground uppercase tracking-wider block">NDCG@10 Score</span>
+                      <div className="text-2xl font-black text-white">
+                        {comparison?.metrics?.ndcg !== undefined ? comparison.metrics.ndcg.toFixed(4) : 'N/A'}
+                      </div>
+                      <span className="text-2xs text-muted-foreground">Normalized discount gain</span>
+                    </div>
+                  </div>
+
+                  {/* NCF Evaluation Metrics Matrix */}
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                      <h4 className="font-bold text-white text-md">PyTorch NCF Evaluation Metrics</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                          <span className="text-xs text-muted-foreground">Precision@10</span>
+                          <span className="text-xs font-bold text-white">
+                            {comparison?.metrics?.precision_at_10 !== undefined ? (comparison.metrics.precision_at_10 * 100).toFixed(2) + '%' : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                          <span className="text-xs text-muted-foreground">Recall@10</span>
+                          <span className="text-xs font-bold text-white">
+                            {comparison?.metrics?.recall_at_10 !== undefined ? (comparison.metrics.recall_at_10 * 100).toFixed(2) + '%' : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                          <span className="text-xs text-muted-foreground">F1 Score@10</span>
+                          <span className="text-xs font-bold text-white">
+                            {comparison?.metrics?.f1_at_10 !== undefined ? (comparison.metrics.f1_at_10 * 100).toFixed(2) + '%' : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                          <span className="text-xs text-muted-foreground">Coverage (Catalog %)</span>
+                          <span className="text-xs font-bold text-white">
+                            {comparison?.metrics?.coverage !== undefined ? (comparison.metrics.coverage * 100).toFixed(2) + '%' : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">Last Retrained At</span>
+                          <span className="text-xs font-bold text-white">
+                            {comparison?.metadata?.trained_at ? new Date(comparison.metadata.trained_at).toLocaleString() : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Training History / Losses Plot */}
+                    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                      <h4 className="font-bold text-white text-md">NCF Loss Convergence History</h4>
+                      {comparison?.metadata?.history?.train_losses?.length > 0 ? (
+                        <div className="h-44 w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={comparison.metadata.history.epochs.map((epoch: number, idx: number) => ({
+                                epoch,
+                                train_loss: comparison.metadata.history.train_losses[idx],
+                                val_loss: comparison.metadata.history.val_losses[idx],
+                              }))}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#2a2e35" />
+                              <XAxis dataKey="epoch" stroke="#94a3b8" fontSize={9} />
+                              <YAxis stroke="#94a3b8" fontSize={9} />
+                              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155' }} />
+                              <Legend wrapperStyle={{ fontSize: '10px' }} />
+                              <Line type="monotone" dataKey="train_loss" stroke="#3b82f6" strokeWidth={2} dot={false} name="Train Loss" />
+                              <Line type="monotone" dataKey="val_loss" stroke="#ef4444" strokeWidth={2} dot={false} name="Val Loss" />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <div className="h-44 flex items-center justify-center border border-dashed border-border rounded-lg">
+                          <span className="text-xs text-muted-foreground">No historical loss records. Run pipeline to generate.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Toggles View selector */}
+                  <div className="flex items-center space-x-2 bg-card border border-border rounded-xl p-2 w-fit">
+                    <button
+                      onClick={() => setModelView('hybrid')}
+                      className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                        modelView === 'hybrid' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-white'
+                      }`}
+                    >
+                      Hybrid Recommender
+                    </button>
+                    <button
+                      onClick={() => setModelView('deep')}
+                      className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                        modelView === 'deep' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-white'
+                      }`}
+                    >
+                      Deep Learning (NCF)
+                    </button>
+                    <button
+                      onClick={() => setModelView('both')}
+                      className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                        modelView === 'both' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-white'
+                      }`}
+                    >
+                      Side-by-Side Comparison
+                    </button>
+                  </div>
+
+                  {/* List / Tables of Recommendations */}
+                  <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                    <h4 className="font-bold text-white text-md">
+                      {modelView === 'hybrid' && 'Hybrid Engine Recommendations'}
+                      {modelView === 'deep' && 'Deep Learning (NCF) Recommendations'}
+                      {modelView === 'both' && 'Comparative Matrix (Top recommendations)'}
+                    </h4>
+
+                    {modelView === 'both' ? (
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        {/* Hybrid List */}
+                        <div className="space-y-3">
+                          <h5 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Hybrid (Matrix + Content)</h5>
+                          {comparison?.hybrid?.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">No hybrid recommendations available.</p>
+                          ) : (
+                            comparison?.hybrid?.map((r: any, idx: number) => (
+                              <div key={idx} className="flex justify-between items-center border-b border-border/50 pb-2.5 last:border-b-0">
+                                <div>
+                                  <span className="text-xs font-bold text-white block">{r.product?.name}</span>
+                                  <span className="text-2xs text-muted-foreground block">💡 {r.explanation}</span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xs font-black text-primary block">Score: {Number(r.score).toFixed(2)}</span>
+                                  <span className="text-[10px] text-muted-foreground">${Number(r.product?.price).toFixed(2)}</span>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Deep Learning List */}
+                        <div className="space-y-3">
+                          <h5 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Deep Learning (Neural Net)</h5>
+                          {comparison?.deep?.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">No deep learning recommendations available.</p>
+                          ) : (
+                            comparison?.deep?.map((r: any, idx: number) => (
+                              <div key={idx} className="flex justify-between items-center border-b border-border/50 pb-2.5 last:border-b-0">
+                                <div>
+                                  <span className="text-xs font-bold text-white block">{r.product?.name}</span>
+                                  <span className="text-2xs text-muted-foreground block">💡 {r.explanation}</span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xs font-black text-indigo-400 block">Score: {Number(r.score).toFixed(2)}</span>
+                                  <span className="text-[10px] text-muted-foreground">${Number(r.product?.price).toFixed(2)}</span>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="border-b border-border text-muted-foreground uppercase font-black tracking-wider">
+                              <th className="pb-3">Rank</th>
+                              <th className="pb-3">Product Name</th>
+                              <th className="pb-3">Brand</th>
+                              <th className="pb-3">Price</th>
+                              <th className="pb-3">Explanation</th>
+                              <th className="pb-3 text-right">Match Score</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {modelView === 'hybrid' &&
+                              comparison?.hybrid?.map((r: any, idx: number) => (
+                                <tr key={idx} className="border-b border-border/60 hover:bg-muted/30">
+                                  <td className="py-3 font-bold text-white">#{idx + 1}</td>
+                                  <td className="py-3 font-bold text-white">{r.product?.name}</td>
+                                  <td className="py-3 text-muted-foreground">{r.product?.brand}</td>
+                                  <td className="py-3 text-white">${Number(r.product?.price).toFixed(2)}</td>
+                                  <td className="py-3 text-muted-foreground italic">" {r.explanation} "</td>
+                                  <td className="py-3 text-right font-black text-primary">{Number(r.score).toFixed(4)}</td>
+                                </tr>
+                              ))}
+                            {modelView === 'deep' &&
+                              comparison?.deep?.map((r: any, idx: number) => (
+                                <tr key={idx} className="border-b border-border/60 hover:bg-muted/30">
+                                  <td className="py-3 font-bold text-white">#{idx + 1}</td>
+                                  <td className="py-3 font-bold text-white">{r.product?.name}</td>
+                                  <td className="py-3 text-muted-foreground">{r.product?.brand}</td>
+                                  <td className="py-3 text-white">${Number(r.product?.price).toFixed(2)}</td>
+                                  <td className="py-3 text-muted-foreground italic">" {r.explanation} "</td>
+                                  <td className="py-3 text-right font-black text-indigo-400">{Number(r.score).toFixed(4)}</td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

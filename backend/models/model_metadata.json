@@ -1,0 +1,22 @@
+{
+  "version": "v1783758005",
+  "active_filename": "ncf_model_v1783758005.pt",
+  "trained_at": "2026-07-11T08:20:05Z",
+  "training_time_seconds": 1.14,
+  "best_epoch": 2,
+  "best_val_loss": 0.21156,
+  "history": {
+    "epochs": [
+      1,
+      2
+    ],
+    "train_losses": [
+      0.22394,
+      0.21637
+    ],
+    "val_losses": [
+      0.21637,
+      0.21156
+    ]
+  }
+}
