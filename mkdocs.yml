@@ -1,0 +1,24 @@
+site_name: JourneyIQ Documentation
+site_description: Enterprise customer journey intelligence and personalized retail recommendations platform.
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: cyan
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+
+nav:
+  - Welcome: index.md
+  - System Architecture: architecture.md
+  - Production Setup: PRODUCTION_SETUP.md
+  - SaaS Deployment: DEPLOYMENT.md
+  - DevOps Operations: DEVOPS.md
+  - MLOps Pipeline: MLOPS.md
+  - Database & Caching: DATABASE_GUIDE.md
+  - Disaster Recovery: BACKUP.md
+  - Monitoring Runbook: RUNBOOK.md
+  - Production Checklist: PRODUCTION_CHECKLIST.md

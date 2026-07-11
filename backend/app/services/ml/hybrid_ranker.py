@@ -1,4 +1,5 @@
 from typing import Any
+
 from app.models.product import Product
 
 
@@ -64,7 +65,7 @@ class HybridRanker:
             content_score = 0.0
             content_count = 0
             user_interacted_prods = [p_id for (u, p_id), w in user_interactions.items() if u == user_id and w > 0]
-            
+
             for interacted_pid in user_interacted_prods:
                 sim_list = content_similarities.get(interacted_pid, [])
                 match = next((sim for pid, sim in sim_list if pid == prod.id), 0.0)
@@ -109,7 +110,7 @@ class HybridRanker:
                         break
                 if not found_match and content_score > 0.4:
                     explanation = "Similar to products you have viewed."
-            
+
             if explanation == "Popular among customers similar to you." and prod.id in trending:
                 explanation = "Trending this week."
             elif explanation == "Popular among customers similar to you." and prod.id in highest_rated:

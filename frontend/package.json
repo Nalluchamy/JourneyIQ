@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "overrides": {
+    "esbuild": "^0.25.0"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
@@ -10,7 +13,8 @@
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.45.0",
@@ -26,6 +30,7 @@
     "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.44.0",
     "@types/node": "^20.14.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -41,6 +46,6 @@
     "prettier": "^3.3.1",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.4.5",
-    "vite": "^5.2.11"
+    "vite": "^6.4.3"
   }
 }

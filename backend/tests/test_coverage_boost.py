@@ -1,12 +1,12 @@
+from decimal import Decimal
+
 import pytest
 import pytest_asyncio
-from decimal import Decimal
 from httpx import AsyncClient
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Category, Product, User, Coupon
 from app.core.security import create_access_token
+from app.models import Category, Coupon, Product, User
 from app.utils.sanitization import sanitize_input
 
 
@@ -28,10 +28,10 @@ async def seed_boost_data(db_session: AsyncSession) -> dict:
         is_deleted=False,
     )
     db_session.add(prod)
-    
+
     # 2. Coupon
     import datetime
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     coupon = Coupon(
         code="SAVE10",
         discount_type="percentage",
@@ -125,7 +125,7 @@ async def test_auth_validation_errors(client: AsyncClient) -> None:
 async def test_profile_endpoints(client: AsyncClient, seed_boost_data: dict) -> None:
     """Tests viewing and updating user profiles."""
     headers = seed_boost_data["headers"]
-    
+
     # Get profile
     res = await client.get("/api/v1/users/me", headers=headers)
     assert res.status_code == 200
@@ -210,7 +210,7 @@ async def test_address_management(client: AsyncClient, seed_boost_data: dict) ->
         "country": "USA",
         "is_default": True
     }
-    
+
     # 1. Create Address
     res = await client.post("/api/v1/addresses", json=addr_payload, headers=headers)
     assert res.status_code == 201

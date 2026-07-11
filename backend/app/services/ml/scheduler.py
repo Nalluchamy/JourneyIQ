@@ -1,18 +1,18 @@
 import asyncio
 import time
+
 import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.db.session import AsyncSessionLocal
-from app.services.ml.recommendation_service import RecommendationService
-from app.services.deep_learning.train import train_ncf_model
-from app.services.deep_learning.predict import NCFPredictor
+from app.models.product import Product
+from app.models.user import User
 from app.services.deep_learning.dataset import build_interaction_matrix
 from app.services.deep_learning.evaluate import DeepLearningEvaluator
-from app.models.user import User
-from app.models.product import Product
+from app.services.deep_learning.predict import NCFPredictor
+from app.services.deep_learning.train import train_ncf_model
+from app.services.ml.recommendation_service import RecommendationService
 
 logger = structlog.get_logger()
 
@@ -57,7 +57,7 @@ async def run_daily_pipeline() -> None:
         logger.info("Running scheduled daily recommendations generation")
         success = False
         backoff = 5.0
-        
+
         # 1 initial run + 3 retries = 4 total attempts
         for attempt in range(4):
             try:
@@ -73,7 +73,7 @@ async def run_daily_pipeline() -> None:
                     # 3. Deep Learning Metrics Evaluation
                     logger.info("Starting scheduled NCF model evaluation")
                     await run_ncf_evaluation_pipeline(db)
-                
+
                 success = True
                 SCHEDULER_HEALTH["status"] = "healthy"
                 SCHEDULER_HEALTH["consecutive_failures"] = 0
@@ -92,11 +92,11 @@ async def run_daily_pipeline() -> None:
                     logger.info(f"Retrying pipeline execution in {backoff} seconds...")
                     await asyncio.sleep(backoff)
                     backoff *= 2.0
-        
+
         if not success:
             SCHEDULER_HEALTH["status"] = "degraded"
             logger.error("Daily recommendation pipeline completely failed after all retries.")
-        
+
         # Sleep for 24 hours
         await asyncio.sleep(86400)
 
@@ -112,7 +112,7 @@ async def run_hourly_metrics_logger() -> None:
             logger.info("Hourly NCF model weights refresh completed successfully")
         except Exception as e:
             logger.error("Failed to reload NCF model weights hourly", error=str(e))
-        
+
         # Sleep for 1 hour
         await asyncio.sleep(3600)
 

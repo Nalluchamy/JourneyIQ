@@ -1,25 +1,25 @@
 from fastapi import APIRouter, Depends
 
-from app.core.rate_limiter import InMemoryRateLimiter
 from app.api.endpoints import (
+    addresses,
     auth,
+    cart,
     categories,
+    checkout,
+    coupons,
+    dashboard,
     events,
     health,
     orders,
-    products,
-    users,
-    cart,
-    wishlist,
-    reviews,
-    addresses,
-    checkout,
-    coupons,
     payments,
+    products,
     recommendations,
-    dashboard,
+    reviews,
     system,
+    users,
+    wishlist,
 )
+from app.core.rate_limiter import InMemoryRateLimiter
 
 api_router = APIRouter()
 

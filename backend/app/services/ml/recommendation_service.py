@@ -1,17 +1,16 @@
-import datetime
 import structlog
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.user import User
-from app.models.product import Product
 from app.models.order import Order
+from app.models.product import Product
 from app.models.recommendation import Recommendation
-from app.services.ml.feature_builder import FeatureBuilder
-from app.services.ml.similarity_engine import SimilarityEngine
-from app.services.ml.hybrid_ranker import HybridRanker
+from app.models.user import User
 from app.services.ml.evaluation import RecommenderEvaluator
+from app.services.ml.feature_builder import FeatureBuilder
+from app.services.ml.hybrid_ranker import HybridRanker
+from app.services.ml.similarity_engine import SimilarityEngine
 
 logger = structlog.get_logger()
 
@@ -68,7 +67,7 @@ class RecommendationService:
         # Get past purchases for each user (to exclude from recommendations and build validation ground truth)
         orders_stmt = select(Order).options(selectinload(Order.items))
         orders = (await self.db.execute(orders_stmt)).scalars().all()
-        
+
         user_purchases: dict[int, set[int]] = {u_id: set() for u_id in user_ids}
         for order in orders:
             if order.user_id in user_purchases:
@@ -77,7 +76,7 @@ class RecommendationService:
 
         # 4. Generate recommendations & clear old records
         await self.db.execute(delete(Recommendation))
-        
+
         recommendations_map: dict[int, list[int]] = {}
         ground_truth: dict[int, list[int]] = {}
 

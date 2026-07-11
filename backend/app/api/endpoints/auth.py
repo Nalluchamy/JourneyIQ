@@ -8,13 +8,13 @@ from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.rate_limiter import InMemoryRateLimiter
 from app.core.security import (
     create_access_token,
     create_password_reset_token,
     create_refresh_token,
-    create_verification_token,
     decode_token,
     get_password_hash,
     hash_token,
@@ -32,8 +32,6 @@ from app.schemas.auth import (
     TokenResponse,
     UserRegister,
 )
-from app.api.deps import get_current_user
-from app.schemas.user import UserRead
 from app.services.mail import get_mail_service
 from app.utils.event_logger import log_event
 
@@ -112,7 +110,7 @@ async def register(
 
     # Hash refresh token before database storage
     hashed_rt = hash_token(refresh_token)
-    rt_expires = datetime.datetime.now(datetime.timezone.utc).replace(
+    rt_expires = datetime.datetime.now(datetime.UTC).replace(
         tzinfo=None
     ) + datetime.timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
@@ -120,7 +118,7 @@ async def register(
     db.add(db_rt)
 
     await log_event(db, request, "login", user_id=user.id)
-    
+
     # Trigger verification email (mocked) to satisfy tests and confirm registration
     mail_service = get_mail_service()
     await mail_service.send_verification_email(user.email)
@@ -211,7 +209,7 @@ async def login(
         raise login_failure_exc
 
     # Lockout check
-    now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     if user.locked_until and user.locked_until > now:
         lock_seconds = int((user.locked_until - now).total_seconds())
         lock_minutes = (lock_seconds // 60) + 1
@@ -253,7 +251,7 @@ async def login(
 
     # Hash refresh token before database storage
     hashed_rt = hash_token(refresh_token)
-    rt_expires = datetime.datetime.now(datetime.timezone.utc).replace(
+    rt_expires = datetime.datetime.now(datetime.UTC).replace(
         tzinfo=None
     ) + datetime.timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
@@ -304,7 +302,7 @@ async def refresh_tokens(
     )
     db_token = rt_res.scalar_one_or_none()
 
-    now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     if db_token is None or db_token.is_revoked or db_token.expires_at < now:
         raise refresh_failure_exc
 

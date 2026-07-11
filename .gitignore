@@ -53,3 +53,25 @@ Thumbs.db
 # We allow migrations to be tracked, but ignore SQLite db or similar local test databases if any
 *.db
 *.sqlite
+
+# Backups
+backups/
+
+# Logs
+logs/
+*.log
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Models (large binary files)
+backend/models/*.pt
+backend/models/evaluation_metrics.json
+
+# Cache
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+

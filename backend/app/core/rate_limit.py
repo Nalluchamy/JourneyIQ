@@ -1,6 +1,7 @@
 import time
+
 import structlog
-from fastapi import Request, HTTPException, status
+from fastapi import HTTPException, Request, status
 
 logger = structlog.get_logger()
 
@@ -17,27 +18,27 @@ class RateLimit:
 
     async def __call__(self, request: Request) -> None:
         client_ip = request.client.host if request.client else "unknown"
-        
+
         # Check if auth profile is set on request state
         user_id = None
         user_obj = getattr(request.state, "user", None)
         if user_obj:
             user_id = getattr(user_obj, "id", None)
-            
+
         client_key = f"user_{user_id}" if user_id else f"ip_{client_ip}"
         path = request.url.path
-        
+
         limit_key = f"{client_key}:{path}"
         now = time.time()
-        
+
         if limit_key not in RATE_LIMIT_STORE:
             RATE_LIMIT_STORE[limit_key] = []
-            
+
         # Clean older requests outside window
         RATE_LIMIT_STORE[limit_key] = [
             t for t in RATE_LIMIT_STORE[limit_key] if now - t < self.window_seconds
         ]
-        
+
         if len(RATE_LIMIT_STORE[limit_key]) >= self.max_requests:
             logger.warning(
                 "Rate limit exceeded",
@@ -55,5 +56,5 @@ class RateLimit:
                     "request_id": request_id
                 }
             )
-            
+
         RATE_LIMIT_STORE[limit_key].append(now)

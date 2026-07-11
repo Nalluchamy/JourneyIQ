@@ -3,12 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingCart, ArrowRight, Minus, Plus, PackageOpen, AlertTriangle } from 'lucide-react';
 import { cartApi } from '../services/api';
+import { useNotification } from '../context/NotificationContext';
 
 export const Cart: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isAuthenticated = !!localStorage.getItem('token');
-  const [toastMsg, setToastMsg] = useState('');
+  const { showNotification } = useNotification();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Fetch Cart Items
@@ -26,7 +27,7 @@ export const Cart: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
     onError: (err: any) => {
-      triggerToast(err.message || 'Failed to update quantity.');
+      showNotification(err.message || 'Failed to update quantity.', 'error');
     },
   });
 
@@ -34,7 +35,7 @@ export const Cart: React.FC = () => {
     mutationFn: (productId: number) => cartApi.removeFromCart(productId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('✓ Item removed from cart');
+      showNotification('Item removed from cart', 'success');
     },
   });
 
@@ -43,14 +44,9 @@ export const Cart: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       setShowClearConfirm(false);
-      triggerToast('✓ Cart cleared successfully');
+      showNotification('Cart cleared successfully', 'success');
     },
   });
-
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(''), 3000);
-  };
 
   // Calculations
   const calculateSubtotal = () => {
@@ -68,12 +64,7 @@ export const Cart: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Toast Alert */}
-      {toastMsg && (
-        <div className="fixed bottom-5 right-5 z-50 rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-lg animate-in fade-in">
-          {toastMsg}
-        </div>
-      )}
+
 
       {/* Clear Cart Confirmation Dialog */}
       {showClearConfirm && (

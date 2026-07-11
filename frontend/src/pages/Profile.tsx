@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate } from 'react-router-dom';
-import { User, ShieldAlert, Phone, Mail, ShoppingBag, CheckCircle, RefreshCw } from 'lucide-react';
+import { User, Phone, Mail, ShoppingBag, CheckCircle } from 'lucide-react';
 import { authApi, ordersApi } from '../services/api';
+import { useNotification } from '../context/NotificationContext';
 
 export const Profile: React.FC = () => {
   const queryClient = useQueryClient();
+  const { showNotification } = useNotification();
   const isAuthenticated = !!localStorage.getItem('token');
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [toastMsg, setToastMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
@@ -42,17 +43,12 @@ export const Profile: React.FC = () => {
     onSuccess: (updatedProfile) => {
       queryClient.setQueryData(['profile'], updatedProfile);
       setIsEditing(false);
-      triggerToast('Profile updated successfully!');
+      showNotification('Profile updated successfully!', 'success');
     },
     onError: (err: any) => {
       setErrorMsg(err.message || 'Failed to update profile details.');
     },
   });
-
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(''), 3000);
-  };
 
   const handleUpdateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,12 +67,7 @@ export const Profile: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Toast Alert */}
-      {toastMsg && (
-        <div className="fixed bottom-5 right-5 z-50 rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-lg animate-in fade-in">
-          {toastMsg}
-        </div>
-      )}
+
 
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-white tracking-tight">Your Profile</h1>

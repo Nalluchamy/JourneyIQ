@@ -8,7 +8,11 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.shipping_address import ShippingAddress
 from app.models.user import User
-from app.schemas.shipping_address import ShippingAddressCreate, ShippingAddressRead, ShippingAddressUpdate
+from app.schemas.shipping_address import (
+    ShippingAddressCreate,
+    ShippingAddressRead,
+    ShippingAddressUpdate,
+)
 
 router = APIRouter()
 
@@ -72,7 +76,7 @@ async def update_address(
         )
 
     update_data = address_in.model_dump(exclude_unset=True)
-    if "is_default" in update_data and update_data["is_default"]:
+    if update_data.get("is_default"):
         await db.execute(
             update(ShippingAddress)
             .where(ShippingAddress.user_id == current_user.id)

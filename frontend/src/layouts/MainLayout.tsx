@@ -74,6 +74,8 @@ export const MainLayout: React.FC = () => {
   const navItems = [
     { name: t('nav.home'), path: '/' },
     { name: t('nav.products'), path: '/products' },
+    { name: t('nav.about'), path: '/about' },
+    { name: t('nav.contact'), path: '/contact' },
   ];
   if (profile?.role === 'admin') {
     navItems.push({ name: 'Dashboard', path: '/dashboard/overview' });

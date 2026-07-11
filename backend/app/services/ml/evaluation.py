@@ -1,5 +1,5 @@
+
 import structlog
-from typing import Any
 
 logger = structlog.get_logger()
 
@@ -38,10 +38,10 @@ class RecommenderEvaluator:
 
             # Overlaps
             hits_set = set(preds) & set(actuals)
-            
+
             # Precision@K
             precision_sum += len(hits_set) / len(preds)
-            
+
             # Recall@K
             recall_sum += len(hits_set) / len(actuals)
 
@@ -52,7 +52,7 @@ class RecommenderEvaluator:
         avg_precision = precision_sum / total_users if total_users > 0 else 0.0
         avg_recall = recall_sum / total_users if total_users > 0 else 0.0
         hit_rate = hits / total_users if total_users > 0 else 0.0
-        
+
         # Coverage
         coverage = len(all_recommended_items) / len(all_product_ids) if all_product_ids else 0.0
 

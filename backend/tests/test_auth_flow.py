@@ -1,16 +1,13 @@
-import datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.core.security import verify_password, hash_token
-from app.models.user import User
+from app.core.security import hash_token, verify_password
 from app.models.refresh_token import RefreshToken
+from app.models.user import User
 
 
 @pytest.mark.asyncio

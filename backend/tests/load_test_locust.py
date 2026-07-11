@@ -1,5 +1,6 @@
 import asyncio
 import time
+
 import httpx
 
 BASE_URL = "http://localhost:8000/api/v1"
@@ -26,7 +27,7 @@ async def simulate_user(client: httpx.AsyncClient, user_id: int) -> list[float]:
     return latencies
 
 async def main():
-    print(f"Starting load test simulation...")
+    print("Starting load test simulation...")
     print(f"Concurrent Users: {CONCURRENT_USERS}")
     print(f"Requests per User: {REQUESTS_PER_USER}")
     print(f"Targets: {TARGETS}")

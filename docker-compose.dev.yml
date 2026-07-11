@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: journeyiq_db_dev
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: journeyiq
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d journeyiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - journeyiq_net_dev
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: journeyiq_backend_dev
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/journeyiq
+      - SECRET_KEY=development-only-insecure-secret-key-12345
+      - JWT_SECRET=development-only-insecure-jwt-secret-67890
+      - FRONTEND_URL=http://localhost:5173
+      - BACKEND_URL=http://localhost:8000
+      - ENVIRONMENT=development
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - journeyiq_net_dev
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: journeyiq_ml_service_dev
+    restart: always
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./ml-service:/app
+    networks:
+      - journeyiq_net_dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: journeyiq_frontend_dev
+    restart: always
+    environment:
+      - VITE_BACKEND_URL=http://localhost:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - journeyiq_net_dev
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  journeyiq_net_dev:
+    driver: bridge

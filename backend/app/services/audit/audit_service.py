@@ -1,6 +1,8 @@
 from typing import Any
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.audit_log import AuditLog
 
 logger = structlog.get_logger()

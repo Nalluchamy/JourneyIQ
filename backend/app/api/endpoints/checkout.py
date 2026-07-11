@@ -16,7 +16,6 @@ from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.order_status_history import OrderStatusHistory
 from app.models.payment import Payment
-from app.models.product import Product
 from app.models.shipping_address import ShippingAddress
 from app.models.user import User
 from app.schemas.coupon import CouponApplyRequest, CouponApplyResponse
@@ -58,7 +57,7 @@ async def calculate_totals(
 
     if coupon_code and subtotal > 0:
         # Validate coupon
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         coupon_stmt = select(Coupon).where(
             Coupon.code == coupon_code.strip().upper(),
             Coupon.is_active == True,
@@ -78,7 +77,7 @@ async def calculate_totals(
                     usages_count = (await db.execute(usage_stmt)).scalar() or 0
                     if usages_count >= coupon_obj.usage_limit:
                         coupon_obj = None  # limit reached
-                
+
                 if coupon_obj:
                     # Apply discount
                     if coupon_obj.discount_type == "percentage":
@@ -89,7 +88,7 @@ async def calculate_totals(
                             discount = raw_discount
                     elif coupon_obj.discount_type == "fixed":
                         discount = min(coupon_obj.discount_value, subtotal)
-                    
+
                     discount = discount.quantize(Decimal("0.01"))
 
     grand_total = max(Decimal("0.00"), subtotal + tax + shipping - discount)
@@ -122,7 +121,7 @@ async def apply_coupon(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """Validate a coupon code and calculate the discount amount for a given cart total."""
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     coupon_stmt = select(Coupon).where(
         Coupon.code == payload.code.strip().upper(),
         Coupon.is_active == True,
@@ -248,7 +247,7 @@ async def checkout(
     # Prevent duplicate submit/checkout: Check if a similar order exists from the user in the last 3 seconds
     recent_order_stmt = select(Order).where(
         Order.user_id == current_user.id,
-        Order.created_at >= datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=3),
+        Order.created_at >= datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=3),
     )
     recent_order = (await db.execute(recent_order_stmt)).scalar_one_or_none()
     if recent_order:
@@ -366,5 +365,5 @@ async def checkout(
             raise e
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Checkout transaction failed: {str(e)}",
+            detail=f"Checkout transaction failed: {e!s}",
         )

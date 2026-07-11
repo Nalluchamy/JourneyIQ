@@ -35,6 +35,9 @@ def setup_logging() -> None:
         cache_logger_on_first_use=True,
     )
 
+    import os
+    os.makedirs("logs", exist_ok=True)
+
     # Format handler for standard python logging (like uvicorn, alembic, etc.)
     # to output through structlog
     handler = logging.StreamHandler(sys.stdout)
@@ -45,16 +48,25 @@ def setup_logging() -> None:
         )
     )
 
+    # File log handler with structured JSON format
+    file_handler = logging.FileHandler("logs/app.log")
+    file_handler.setFormatter(
+        structlog.stdlib.ProcessorFormatter(
+            processor=structlog.processors.JSONRenderer(),
+            foreign_pre_chain=shared_processors,
+        )
+    )
+
     # Configure root logger
     root_logger = logging.getLogger()
-    root_logger.handlers = [handler]
+    root_logger.handlers = [handler, file_handler]
     root_logger.setLevel(
         logging.INFO if settings.ENVIRONMENT.lower() == "production" else logging.DEBUG
     )
 
     # Silence noisy loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
 # Create a base logger

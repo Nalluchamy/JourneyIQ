@@ -3,8 +3,8 @@ import hashlib
 import re
 from typing import Any, cast
 
-from jose import jwt
 import bcrypt
+from jose import jwt
 
 from app.core.config import settings
 
@@ -38,9 +38,9 @@ def create_access_token(
 ) -> str:
     """Generate short-lived access JWT with a unique jti claim."""
     if expires_delta:
-        expire = datetime.datetime.now(datetime.timezone.utc) + expires_delta
+        expire = datetime.datetime.now(datetime.UTC) + expires_delta
     else:
-        expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+        expire = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
@@ -63,9 +63,9 @@ def create_refresh_token(
 ) -> str:
     """Generate long-lived refresh JWT with a unique jti claim."""
     if expires_delta:
-        expire = datetime.datetime.now(datetime.timezone.utc) + expires_delta
+        expire = datetime.datetime.now(datetime.UTC) + expires_delta
     else:
-        expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+        expire = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
             days=settings.REFRESH_TOKEN_EXPIRE_DAYS
         )
 
@@ -109,7 +109,7 @@ def validate_password_strength(password: str) -> None:
 
 def create_verification_token(email: str) -> str:
     """Create signed email verification token valid for 24 hours."""
-    expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)
+    expire = datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=24)
     to_encode = {"exp": expire, "sub": email, "type": "email_verification"}
     return cast(
         str,
@@ -125,7 +125,7 @@ def create_password_reset_token(email: str, password_hash: str) -> str:
     Stores a hash checksum of the user's password_hash to invalidate the link
     once the password is modified.
     """
-    expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+    expire = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
         minutes=15
     )
     pw_hash_checksum = hashlib.md5(password_hash.encode("utf-8")).hexdigest()

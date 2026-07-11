@@ -11,5 +11,5 @@ def sanitize_input(value: Any) -> Any:
     clean = re.sub(r"<script.*?>.*?</script>", "", value, flags=re.IGNORECASE | re.DOTALL)
     # Remove any other HTML tag elements
     clean = re.sub(r"<[^>]*>", "", clean)
-    
+
     return clean.strip()

@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import Mock, patch
 
 import pytest
@@ -7,7 +6,6 @@ from httpx import AsyncClient
 
 from app.core.cache import cache
 from app.core.rate_limiter import InMemoryRateLimiter
-from app.main import app
 
 
 @pytest.mark.anyio
@@ -59,7 +57,7 @@ async def test_security_headers_and_correlation_id(client: AsyncClient) -> None:
 @pytest.mark.anyio
 async def test_timeout_middleware_trigger(client: AsyncClient) -> None:
     """Mocks a request timeout to verify the Gateway Timeout HTTP 504 response formatting."""
-    with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
+    with patch("asyncio.wait_for", side_effect=TimeoutError()):
         res = await client.get("/api/v1/system/live")
         assert res.status_code == 504
         assert res.json()["success"] is False
@@ -73,7 +71,7 @@ async def test_rate_limiter_unit() -> None:
     from app.core.config import settings
     original_env = settings.ENVIRONMENT
     settings.ENVIRONMENT = "production"
-    
+
     try:
         limiter = InMemoryRateLimiter(requests_limit=2, window_seconds=60)
 
@@ -90,7 +88,7 @@ async def test_rate_limiter_unit() -> None:
         # Exceed limit on the 3rd request -> raise HTTP 429
         with pytest.raises(HTTPException) as exc_info:
             await limiter(request)
-        
+
         assert exc_info.value.status_code == 429
         assert exc_info.value.detail["error"] == "TooManyRequests"
     finally:
@@ -100,7 +98,7 @@ async def test_rate_limiter_unit() -> None:
 def test_caching_coordinator() -> None:
     """Verifies cache SET, GET, DELETE operations run and fallback gracefully."""
     cache.clear()
-    
+
     # Assert get on non-existent key returns None
     assert cache.get("non_existent_key") is None
 

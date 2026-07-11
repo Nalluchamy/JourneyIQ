@@ -1,44 +1,44 @@
 from app.db.base_class import Base, BaseModel
-from app.models.user import User
+from app.models.audit_log import AuditLog
+from app.models.cart_item import CartItem
 from app.models.category import Category
-from app.models.product import Product
+from app.models.coupon import Coupon
+from app.models.coupon_usage import CouponUsage
+from app.models.event import Event
 from app.models.inventory_history import InventoryHistory
 from app.models.order import Order
 from app.models.order_item import OrderItem
-from app.models.review import Review
-from app.models.event import Event
-from app.models.recommendation import Recommendation
-from app.models.segment import Segment
-from app.models.payment import Payment
-from app.models.refresh_token import RefreshToken
-from app.models.audit_log import AuditLog
-from app.models.wishlist_item import WishlistItem
-from app.models.cart_item import CartItem
-from app.models.shipping_address import ShippingAddress
 from app.models.order_status_history import OrderStatusHistory
-from app.models.coupon import Coupon
-from app.models.coupon_usage import CouponUsage
+from app.models.payment import Payment
+from app.models.product import Product
+from app.models.recommendation import Recommendation
+from app.models.refresh_token import RefreshToken
+from app.models.review import Review
+from app.models.segment import Segment
+from app.models.shipping_address import ShippingAddress
+from app.models.user import User
+from app.models.wishlist_item import WishlistItem
 
 __all__ = [
+    "AuditLog",
     "Base",
     "BaseModel",
-    "User",
+    "CartItem",
     "Category",
-    "Product",
+    "Coupon",
+    "CouponUsage",
+    "Event",
     "InventoryHistory",
     "Order",
     "OrderItem",
-    "Review",
-    "Event",
-    "Recommendation",
-    "Segment",
-    "Payment",
-    "RefreshToken",
-    "AuditLog",
-    "WishlistItem",
-    "CartItem",
-    "ShippingAddress",
     "OrderStatusHistory",
-    "Coupon",
-    "CouponUsage",
+    "Payment",
+    "Product",
+    "Recommendation",
+    "RefreshToken",
+    "Review",
+    "Segment",
+    "ShippingAddress",
+    "User",
+    "WishlistItem",
 ]

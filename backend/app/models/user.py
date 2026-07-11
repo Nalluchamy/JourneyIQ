@@ -8,6 +8,7 @@ from app.db.base_class import BaseModel, SoftDeleteMixin
 
 if TYPE_CHECKING:
     from app.models.audit_log import AuditLog
+    from app.models.coupon_usage import CouponUsage
     from app.models.event import Event
     from app.models.order import Order
     from app.models.recommendation import Recommendation
@@ -15,7 +16,6 @@ if TYPE_CHECKING:
     from app.models.review import Review
     from app.models.segment import Segment
     from app.models.shipping_address import ShippingAddress
-    from app.models.coupon_usage import CouponUsage
 
 
 class User(BaseModel, SoftDeleteMixin):

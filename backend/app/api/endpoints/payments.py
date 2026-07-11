@@ -8,7 +8,6 @@ from sqlalchemy.orm import selectinload
 from app.db.session import get_db
 from app.models.order import Order
 from app.models.order_status_history import OrderStatusHistory
-from app.models.payment import Payment
 from app.schemas.response import APIResponse
 from app.utils.event_logger import log_event
 

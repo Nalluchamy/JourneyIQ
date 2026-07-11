@@ -1,4 +1,5 @@
 import asyncio
+
 import structlog
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
@@ -12,14 +13,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
-        
+
         # Security Hardening Headers
         response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        
+
         # Ensure Correlation ID is on the response header
         request_id = getattr(request.state, "request_id", None)
         if request_id:
@@ -37,7 +38,7 @@ class RequestTimeoutMiddleware(BaseHTTPMiddleware):
             # A 30.0 second timeout limit
             response = await asyncio.wait_for(call_next(request), timeout=30.0)
             return response
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Request execution timed out", path=request.url.path, request_id=request_id)
             return JSONResponse(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,

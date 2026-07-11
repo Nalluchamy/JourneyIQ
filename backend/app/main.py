@@ -42,7 +42,8 @@ app = FastAPI(
 )
 
 from fastapi.middleware.gzip import GZipMiddleware
-from app.middleware.security import SecurityHeadersMiddleware, RequestTimeoutMiddleware
+
+from app.middleware.security import RequestTimeoutMiddleware, SecurityHeadersMiddleware
 
 # Configure CORS middleware
 app.add_middleware(

@@ -1,16 +1,16 @@
 import datetime
 from decimal import Decimal
+
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
-from app.models import Category, Product, User, Order, OrderItem, Segment
+from app.models import Category, Order, OrderItem, Product, User
 from app.services.analytics.customer_intelligence import CustomerIntelligenceService
 from app.services.analytics.funnel import JourneyFunnelService
-from app.services.analytics.sales_product import SalesProductAnalyticsService
 from app.services.analytics.insights import AIInsightsService
+from app.services.analytics.sales_product import SalesProductAnalyticsService
 
 
 @pytest.mark.asyncio
@@ -59,7 +59,7 @@ async def test_dashboard_analytics_services_and_apis(
         status="confirmed",
         subtotal=Decimal("120.00"),
         total=Decimal("129.60"),
-        created_at=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10) # 10 days ago (Recent)
+        created_at=datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=10) # 10 days ago (Recent)
     )
     db_session.add(order)
     await db_session.flush()
@@ -78,7 +78,7 @@ async def test_dashboard_analytics_services_and_apis(
     intel_service = CustomerIntelligenceService(db_session)
     results = await intel_service.calculate_rfm_and_segmentation()
     assert len(results) > 0
-    
+
     cust_res = next(r for r in results if r["user_id"] == customer_user.id)
     assert cust_res["order_count"] == 1
     assert cust_res["total_spend"] == 129.60

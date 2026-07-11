@@ -1,13 +1,11 @@
 from typing import Any
-import datetime
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.category import Category
 from app.models.order import Order
 from app.models.product import Product
-from app.models.category import Category
-from app.models.event import Event
 from app.services.analytics.customer_intelligence import CustomerIntelligenceService
 from app.services.analytics.funnel import JourneyFunnelService
 
@@ -37,7 +35,7 @@ class AIInsightsService:
                     "insight": f"{high_churn_count} customers are at high risk of churning soon.",
                     "action": "Offer a targeted 15% discount coupon to win them back."
                 })
-        except Exception as e:
+        except Exception:
             pass
 
         # 2. Funnel / Cart Abandonment Insights (HIGH/MEDIUM Priority)
@@ -58,7 +56,7 @@ class AIInsightsService:
                     "insight": f"Cart abandonment is sitting at {abandon_rate}%.",
                     "action": "Offer free shipping thresholds to encourage checkout completions."
                 })
-        except Exception as e:
+        except Exception:
             pass
 
         # 3. Peak Shopping Hours (MEDIUM Priority)
@@ -66,16 +64,16 @@ class AIInsightsService:
             orders_stmt = select(Order.created_at).where(Order.status == "confirmed")
             res = await self.db.execute(orders_stmt)
             times = res.scalars().all()
-            
+
             if times:
                 hours = [t.hour for t in times]
                 # Find most frequent hour
                 peak_hour = max(set(hours), key=hours.count)
-                
+
                 # Format explanation label
                 start_h = peak_hour
                 end_h = (peak_hour + 3) % 24
-                
+
                 # Translate 24h to AM/PM readable format
                 def fmt_h(h):
                     return f"{12 if h % 12 == 0 else h % 12} {'PM' if h >= 12 else 'AM'}"
@@ -86,7 +84,7 @@ class AIInsightsService:
                     "insight": f"Most customer orders are placed between {fmt_h(start_h)} and {fmt_h(end_h)}.",
                     "action": f"Schedule promotional newsletters and email blasts around {fmt_h(start_h)} to capture active buyers."
                 })
-        except Exception as e:
+        except Exception:
             pass
 
         # 4. Top Category Revenue (LOW Priority)
@@ -113,7 +111,7 @@ class AIInsightsService:
                     "insight": f"The '{top_cat[0]}' category generated the highest share of sales revenue.",
                     "action": "Expand product catalog options and increase digital marketing budget for this category."
                 })
-        except Exception as e:
+        except Exception:
             pass
 
         # Fallback if no data is available

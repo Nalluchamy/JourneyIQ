@@ -1,15 +1,15 @@
 import datetime
-from decimal import Decimal
 from typing import Any
-from sqlalchemy import select, func, and_
+
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.product import Product
+from app.models.event import Event
 from app.models.order import Order
 from app.models.order_item import OrderItem
+from app.models.product import Product
 from app.models.review import Review
-from app.models.event import Event
 
 
 class SalesProductAnalyticsService:
@@ -20,14 +20,14 @@ class SalesProductAnalyticsService:
 
     def get_date_range_filter(self, range_name: str, start_date: datetime.datetime | None = None, end_date: datetime.datetime | None = None) -> tuple[datetime.datetime, datetime.datetime]:
         """Calculates start and end datetime limits for date range filters."""
-        now = datetime.datetime.now(datetime.timezone.utc)
-        today_start = datetime.datetime.combine(now.date(), datetime.time.min, tzinfo=datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
+        today_start = datetime.datetime.combine(now.date(), datetime.time.min, tzinfo=datetime.UTC)
 
         if range_name == "today":
             return today_start, now
         elif range_name == "yesterday":
             yest_start = today_start - datetime.timedelta(days=1)
-            yest_end = datetime.datetime.combine(yest_start.date(), datetime.time.max, tzinfo=datetime.timezone.utc)
+            yest_end = datetime.datetime.combine(yest_start.date(), datetime.time.max, tzinfo=datetime.UTC)
             return yest_start, yest_end
         elif range_name == "last_7_days":
             return now - datetime.timedelta(days=7), now
@@ -37,10 +37,10 @@ class SalesProductAnalyticsService:
             month_start = today_start.replace(day=1)
             return month_start, now
         elif range_name == "custom" and start_date and end_date:
-            s_date = start_date if start_date.tzinfo else start_date.replace(tzinfo=datetime.timezone.utc)
-            e_date = end_date if end_date.tzinfo else end_date.replace(tzinfo=datetime.timezone.utc)
+            s_date = start_date if start_date.tzinfo else start_date.replace(tzinfo=datetime.UTC)
+            e_date = end_date if end_date.tzinfo else end_date.replace(tzinfo=datetime.UTC)
             return s_date, e_date
-        
+
         # Default fallback to last 30 days
         return now - datetime.timedelta(days=30), now
 
@@ -89,9 +89,9 @@ class SalesProductAnalyticsService:
         chart_list = sorted(timeline_data.values(), key=lambda x: x["date"])
 
         # Calculate Yesterday's comparative stats for Executive summary
-        now = datetime.datetime.now(datetime.timezone.utc)
-        yesterday_start = datetime.datetime.combine(now.date() - datetime.timedelta(days=1), datetime.time.min, tzinfo=datetime.timezone.utc)
-        yesterday_end = datetime.datetime.combine(now.date() - datetime.timedelta(days=1), datetime.time.max, tzinfo=datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
+        yesterday_start = datetime.datetime.combine(now.date() - datetime.timedelta(days=1), datetime.time.min, tzinfo=datetime.UTC)
+        yesterday_end = datetime.datetime.combine(now.date() - datetime.timedelta(days=1), datetime.time.max, tzinfo=datetime.UTC)
 
         stmt_yesterday = select(Order).where(Order.status == "confirmed", Order.created_at >= yesterday_start, Order.created_at <= yesterday_end)
         yesterday_orders = (await self.db.execute(stmt_yesterday)).scalars().all()
@@ -99,7 +99,7 @@ class SalesProductAnalyticsService:
         yesterday_count = len(yesterday_orders)
 
         # Today's stats
-        today_start = datetime.datetime.combine(now.date(), datetime.time.min, tzinfo=datetime.timezone.utc)
+        today_start = datetime.datetime.combine(now.date(), datetime.time.min, tzinfo=datetime.UTC)
         stmt_today = select(Order).where(Order.status == "confirmed", Order.created_at >= today_start)
         today_orders = (await self.db.execute(stmt_today)).scalars().all()
         today_revenue = sum(float(o.total) for o in today_orders)
@@ -166,7 +166,7 @@ class SalesProductAnalyticsService:
         ratings_data = {row[0]: float(row[1]) for row in ratings_res.all()}
 
         # 3. Trending views (views in last 7 days)
-        seven_days_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
+        seven_days_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=7)
         stmt_trending = (
             select(Event.product_id, func.count(Event.id).label("views"))
             .where(Event.event_type == "view_item", Event.timestamp >= seven_days_ago)

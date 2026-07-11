@@ -178,11 +178,11 @@ export const Checkout: React.FC = () => {
         <svg className="w-16 h-16 mx-auto text-slate-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
-        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Your cart is empty</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Add items to your cart before proceeding to checkout.</p>
+        <h2 className="text-2xl font-extrabold text-white mb-2">Your cart is empty</h2>
+        <p className="text-sm text-muted-foreground mb-6">Add items to your cart before proceeding to checkout.</p>
         <button
           onClick={() => navigate('/products')}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-md shadow-blue-500/10"
+          className="px-6 py-3 bg-brand-gradient text-white rounded-xl font-bold transition-all hover:opacity-90 shadow-lg shadow-indigo-500/20"
         >
           Continue Shopping
         </button>
@@ -190,23 +190,42 @@ export const Checkout: React.FC = () => {
     );
   }
 
+  // Determine current active step for animated progress indicator
+  const currentStep = paymentStatus === 'success' ? 3 : (paymentStep ? 2 : 1);
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Title */}
-      <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Secure Checkout</h1>
+    <div className="max-w-6xl mx-auto px-4 py-8 relative">
+      {/* Multi-step progress bar with animations */}
+      <div className="mb-12 max-w-2xl mx-auto">
+        <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-muted-foreground mb-4">
+          <span className={currentStep >= 1 ? 'text-cyan-400' : ''}>1. Shipping</span>
+          <span className={currentStep >= 2 ? 'text-indigo-400' : ''}>2. Payment</span>
+          <span className={currentStep >= 3 ? 'text-emerald-400' : ''}>3. Confirmed</span>
+        </div>
+        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+          <div 
+            className="h-full bg-brand-gradient transition-all duration-700 ease-out" 
+            style={{ width: currentStep === 1 ? '33.3%' : (currentStep === 2 ? '66.6%' : '100%') }}
+          />
+        </div>
+      </div>
+
+      {currentStep !== 3 && (
+        <h1 className="text-3xl font-black text-white tracking-tight mb-8">Secure Checkout</h1>
+      )}
 
       {/* Main Grid */}
       {!paymentStep ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Address and Payment Options */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Shipping Address Section */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-6 shadow-sm">
+            {/* Shipping Address Section - Glassmorphism */}
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 shadow-xl">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">1. Shipping Address</h3>
+                <h3 className="text-lg font-bold text-white">1. Shipping Address</h3>
                 <button
                   onClick={() => navigate('/address')}
-                  className="text-sm font-bold text-blue-650 hover:text-blue-700 flex items-center gap-1"
+                  className="text-sm font-bold text-cyan-400 hover:underline flex items-center gap-1"
                 >
                   Manage Addresses
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -216,11 +235,11 @@ export const Checkout: React.FC = () => {
               </div>
 
               {addresses.length === 0 ? (
-                <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">No shipping addresses saved.</p>
+                <div className="text-center py-6 border-2 border-dashed border-white/10 rounded-xl">
+                  <p className="text-sm text-muted-foreground mb-4">No shipping addresses saved.</p>
                   <button
                     onClick={() => navigate('/address')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors"
+                    className="px-4 py-2 bg-brand-gradient text-white rounded-xl text-sm font-bold transition-all hover:opacity-90"
                   >
                     Create Address
                   </button>
@@ -231,51 +250,51 @@ export const Checkout: React.FC = () => {
                     <div
                       key={addr.id}
                       onClick={() => setSelectedAddressId(addr.id)}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
                         selectedAddressId === addr.id
-                          ? 'border-blue-500 bg-blue-50/20 dark:bg-blue-950/10'
-                          : 'border-slate-100 dark:border-slate-700 hover:border-slate-200'
+                          ? 'border-cyan-500 bg-cyan-500/10'
+                          : 'border-white/10 hover:border-white/20 bg-black/25'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-slate-900 dark:text-white text-sm">{addr.full_name}</span>
+                        <span className="font-bold text-white text-sm">{addr.full_name}</span>
                         {selectedAddressId === addr.id && (
-                          <span className="w-4.5 h-4.5 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px]">
+                          <span className="w-4.5 h-4.5 bg-cyan-500 rounded-full flex items-center justify-center text-white text-[10px] px-1 font-bold">
                             ✓
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         {addr.address_line1}, {addr.address_line2 && `${addr.address_line2}, `}{addr.city}, {addr.state} {addr.postal_code}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-medium">Phone: {addr.phone}</p>
+                      <p className="text-xs text-slate-500 mt-2 font-medium">Phone: {addr.phone}</p>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Cart Review Items */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">2. Review Items</h3>
-              <div className="divide-y divide-slate-100 dark:divide-slate-700">
+            {/* Cart Review Items - Glassmorphism */}
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 shadow-xl">
+              <h3 className="text-lg font-bold text-white mb-4">2. Review Items</h3>
+              <div className="divide-y divide-white/10">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                     {item.product.image_url ? (
-                      <img src={item.product.image_url} alt={item.product.name} className="w-16 h-16 rounded-xl object-cover" />
+                      <img src={item.product.image_url} alt={item.product.name} className="w-16 h-16 rounded-xl object-cover border border-white/5" />
                     ) : (
-                      <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400">
+                      <div className="w-16 h-16 rounded-xl bg-black/40 flex items-center justify-center text-slate-400">
                         📦
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">{item.product.name}</h4>
-                      {item.product.brand && <p className="text-xs text-slate-450 dark:text-slate-400">{item.product.brand}</p>}
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Qty: {item.quantity}</p>
+                      <h4 className="font-bold text-white text-sm truncate">{item.product.name}</h4>
+                      {item.product.brand && <p className="text-xs text-cyan-400">{item.product.brand}</p>}
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-slate-900 dark:text-white">${(item.product.price * item.quantity).toFixed(2)}</span>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">${item.product.price.toFixed(2)} each</p>
+                      <span className="font-bold text-white">${(item.product.price * item.quantity).toFixed(2)}</span>
+                      <p className="text-xs text-muted-foreground">${item.product.price.toFixed(2)} each</p>
                     </div>
                   </div>
                 ))}
@@ -283,61 +302,61 @@ export const Checkout: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Coupon Box & Final Totals */}
+          {/* Right Column: Coupon Box & Floating Summary Card */}
           <div className="space-y-6">
             {/* Promo Codes */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-6 shadow-sm">
-              <h3 className="text-md font-bold text-slate-900 dark:text-white mb-3">Apply Promo Code</h3>
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 shadow-xl">
+              <h3 className="text-md font-bold text-white mb-3">Apply Promo Code</h3>
               <form onSubmit={handleApplyCoupon} className="flex gap-2">
                 <input
                   type="text"
                   placeholder="e.g. WELCOME10"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm uppercase font-semibold"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-black/40 text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 text-sm uppercase font-semibold"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-slate-900 dark:bg-slate-750 hover:bg-slate-800 text-white rounded-xl text-sm font-bold transition-colors"
+                  className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-bold transition-all border border-white/10"
                 >
                   Apply
                 </button>
               </form>
               {couponMsg.text && (
-                <p className={`text-xs mt-2 font-medium ${couponMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                <p className={`text-xs mt-2 font-bold ${couponMsg.type === 'success' ? 'text-emerald-450' : 'text-red-400'}`}>
                   {couponMsg.text}
                 </p>
               )}
             </div>
 
-            {/* Price Calculations */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Order Summary</h3>
-              <div className="space-y-3 text-sm border-b border-slate-100 dark:border-slate-700 pb-4">
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            {/* Floating Price Calculations Summary Card */}
+            <div className="sticky top-24 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 shadow-2xl space-y-6">
+              <h3 className="text-lg font-bold text-white border-b border-white/10 pb-3">Order Summary</h3>
+              <div className="space-y-3 text-sm border-b border-white/10 pb-4">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">${summary.subtotal.toFixed(2)}</span>
+                  <span className="font-semibold text-white">${summary.subtotal.toFixed(2)}</span>
                 </div>
                 {summary.discount > 0 && (
-                  <div className="flex justify-between text-green-600">
+                  <div className="flex justify-between text-emerald-450">
                     <span>Discount {activeCoupon && `(${activeCoupon})`}</span>
                     <span className="font-semibold">-${summary.discount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Tax (8%)</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">${summary.tax.toFixed(2)}</span>
+                  <span className="font-semibold text-white">${summary.tax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
+                  <span className="font-semibold text-white">
                     {summary.shipping === 0 ? 'Free' : `$${summary.shipping.toFixed(2)}`}
                   </span>
                 </div>
               </div>
-              <div className="flex justify-between items-center pt-4 mb-6">
-                <span className="font-bold text-slate-900 dark:text-white">Grand Total</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">${summary.grand_total.toFixed(2)}</span>
+              <div className="flex justify-between items-center pt-2 mb-6">
+                <span className="font-bold text-white">Grand Total</span>
+                <span className="text-2xl font-black text-cyan-400">${summary.grand_total.toFixed(2)}</span>
               </div>
 
               <button
@@ -345,8 +364,8 @@ export const Checkout: React.FC = () => {
                 disabled={submitting || !selectedAddressId}
                 className={`w-full py-4 rounded-xl font-bold transition-all text-center flex items-center justify-center gap-2 ${
                   submitting || !selectedAddressId
-                    ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/10 active:scale-[0.98]'
+                    ? 'bg-white/5 border border-white/5 text-muted-foreground cursor-not-allowed'
+                    : 'bg-brand-gradient text-white shadow-lg shadow-indigo-500/25 active:scale-[0.98]'
                 }`}
               >
                 {submitting ? 'Processing Checkout...' : 'Confirm & Place Order'}
@@ -355,79 +374,94 @@ export const Checkout: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* MOCK PAYMENT DIALOG OVERLAY */
-        <div className="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-8 text-center shadow-lg">
+        /* MOCK PAYMENT DIALOG OVERLAY & CELEBRATION BADGES */
+        <div className="max-w-md mx-auto bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-8 text-center shadow-2xl relative overflow-hidden">
           {!paymentStatus ? (
             <>
-              <div className="w-16 h-16 bg-yellow-50 dark:bg-yellow-950/20 rounded-full flex items-center justify-center text-yellow-600 mx-auto mb-4">
-                💳
+              {/* Payment Loading Orb animation */}
+              <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+                <span className="text-3xl">💳</span>
               </div>
-              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">Simulate Payment Auth</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                Your order <strong className="text-slate-750 dark:text-slate-350">{invoiceNum}</strong> has been initialized. Authorize mock payment callback below.
+              <h2 className="text-xl font-extrabold text-white mb-2">Simulate Payment Auth</h2>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Your order <strong className="text-white">{invoiceNum}</strong> has been initialized. Authorize mock payment callback below.
               </p>
               <div className="space-y-3">
                 <button
                   onClick={() => handlePaymentMock(true)}
                   disabled={submitting}
-                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-md shadow-green-500/10"
+                  className="w-full py-3 bg-brand-gradient text-white font-bold rounded-xl transition-all shadow-lg hover:opacity-95"
                 >
                   Simulate Payment SUCCESS
                 </button>
                 <button
                   onClick={() => handlePaymentMock(false)}
                   disabled={submitting}
-                  className="w-full py-3 bg-red-650 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-md shadow-red-500/10"
+                  className="w-full py-3 bg-red-600/30 hover:bg-red-600/50 text-white font-bold rounded-xl transition-all border border-red-500/20"
                 >
                   Simulate Payment FAILURE
                 </button>
               </div>
             </>
           ) : paymentStatus === 'success' ? (
-            <>
-              <div className="w-16 h-16 bg-green-50 dark:bg-green-950/20 rounded-full flex items-center justify-center text-green-600 mx-auto mb-4">
-                ✓
+            /* 3. ORDER CONFIRMATION CELEBRATORY SCREEN WITH 3D CHECKMARK BADGE */
+            <div className="space-y-6 py-4">
+              {/* 3D celebratory checkmark badge */}
+              <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                {/* Glowing expanding pulse rings */}
+                <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping duration-1000" />
+                <div className="absolute -inset-2 rounded-full border border-emerald-500/30 animate-pulse" />
+                
+                {/* 3D badge container */}
+                <div 
+                  className="h-20 w-20 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/50 text-white font-black text-4xl border border-white/20 transform rotate-6 transition-transform"
+                  style={{ transform: 'perspective(500px) rotateX(15deg) rotateY(15deg)' }}
+                >
+                  ✓
+                </div>
               </div>
-              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Order Confirmed!</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                Thank you! Your payment was authorized. Order <strong className="text-slate-750 dark:text-slate-350">{invoiceNum}</strong> is currently Confirmed.
+
+              <h2 className="text-3xl font-black text-white tracking-tight">Order Confirmed!</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Thank you! Your payment was authorized. Order <strong className="text-white">{invoiceNum}</strong> is currently Confirmed.
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => navigate(`/orders/${createdOrderId}`)}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+                  className="flex-1 py-3 bg-brand-gradient text-white font-bold rounded-xl transition-all"
                 >
                   View Order Status
                 </button>
                 <button
                   onClick={() => navigate('/products')}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-colors"
+                  className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold rounded-xl transition-all"
                 >
-                  Continue Shop
+                  Continue Shopping
                 </button>
               </div>
-            </>
+            </div>
           ) : (
             <>
-              <div className="w-16 h-16 bg-red-50 dark:bg-red-950/20 rounded-full flex items-center justify-center text-red-650 mx-auto mb-4">
+              <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center text-red-400 mx-auto mb-4 text-2xl font-bold">
                 ✕
               </div>
-              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Payment Failed</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                We couldn't authorize payment for invoice <strong className="text-slate-750 dark:text-slate-350">{invoiceNum}</strong>. You can try again or cancel the order.
+              <h2 className="text-2xl font-extrabold text-white mb-2">Payment Failed</h2>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                We couldn't authorize payment for invoice <strong className="text-white">{invoiceNum}</strong>. You can try again or cancel the order.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => { setPaymentStatus(null); }}
-                  className="flex-1 py-3 bg-blue-650 hover:bg-blue-750 text-white font-bold rounded-xl transition-colors"
+                  className="flex-1 py-3 bg-brand-gradient text-white font-bold rounded-xl transition-all"
                 >
                   Retry Payment
                 </button>
                 <button
                   onClick={() => navigate('/orders')}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-colors"
+                  className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all"
                 >
-                  View Order History
+                  Order History
                 </button>
               </div>
             </>
@@ -437,3 +471,4 @@ export const Checkout: React.FC = () => {
     </div>
   );
 };
+

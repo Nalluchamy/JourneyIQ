@@ -3,11 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate } from 'react-router-dom';
 import { Trash2, ShoppingCart, Heart, ArrowRight } from 'lucide-react';
 import { wishlistApi, cartApi } from '../services/api';
+import { useNotification } from '../context/NotificationContext';
 
 export const Wishlist: React.FC = () => {
   const queryClient = useQueryClient();
   const isAuthenticated = !!localStorage.getItem('token');
-  const [toastMsg, setToastMsg] = useState('');
+  const { showNotification } = useNotification();
 
   // Fetch Wishlist Items query
   const { data: items, isLoading, isError } = useQuery({
@@ -21,7 +22,7 @@ export const Wishlist: React.FC = () => {
     mutationFn: (productId: number) => wishlistApi.removeFromWishlist(productId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      triggerToast('Removed from wishlist.');
+      showNotification('Removed from wishlist.', 'success');
     },
   });
 
@@ -33,14 +34,9 @@ export const Wishlist: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('Moved to shopping cart!');
+      showNotification('Moved to shopping cart!', 'success');
     },
   });
-
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(''), 3000);
-  };
 
   // Redirect guests to login
   if (!isAuthenticated) {
@@ -49,12 +45,7 @@ export const Wishlist: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Toast Alert */}
-      {toastMsg && (
-        <div className="fixed bottom-5 right-5 z-50 rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-lg animate-in fade-in">
-          {toastMsg}
-        </div>
-      )}
+
 
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-white tracking-tight">Your Wishlist</h1>

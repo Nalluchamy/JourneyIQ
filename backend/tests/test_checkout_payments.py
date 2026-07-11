@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
@@ -9,12 +10,9 @@ from app.core.security import create_access_token
 from app.models.cart_item import CartItem
 from app.models.category import Category
 from app.models.coupon import Coupon
-from app.models.coupon_usage import CouponUsage
 from app.models.order import Order
-from app.models.order_item import OrderItem
 from app.models.payment import Payment
 from app.models.product import Product
-from app.models.shipping_address import ShippingAddress
 from app.models.user import User
 
 
@@ -92,7 +90,7 @@ async def test_checkout_payments_e2e(
 
     # 4. Apply Coupon validation
     # Seed a demo coupon
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     expiry = now + datetime.timedelta(days=10)
     coupon = Coupon(
         code="SUPER20",

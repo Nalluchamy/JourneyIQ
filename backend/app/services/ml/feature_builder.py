@@ -1,17 +1,14 @@
-from decimal import Decimal
 from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.event import Event
 from app.models.cart_item import CartItem
-from app.models.wishlist_item import WishlistItem
+from app.models.event import Event
 from app.models.order import Order
-from app.models.order_item import OrderItem
 from app.models.review import Review
-from app.models.product import Product
-from app.models.user import User
+from app.models.wishlist_item import WishlistItem
 
 
 class FeatureBuilder:

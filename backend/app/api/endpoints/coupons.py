@@ -19,7 +19,7 @@ async def ensure_demo_coupons(db: AsyncSession) -> None:
     if result.scalar_one_or_none() is not None:
         return  # Already seeded
 
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     expiry = now + datetime.timedelta(days=365)
 
     demo_coupons = [
@@ -93,7 +93,7 @@ async def ensure_demo_coupons(db: AsyncSession) -> None:
 async def get_active_coupons(db: AsyncSession = Depends(get_db)) -> Any:
     """Retrieve all active, non-expired coupons. Seeds demo coupons first if none exist."""
     await ensure_demo_coupons(db)
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     result = await db.execute(
         select(Coupon).where(
             Coupon.is_active == True,

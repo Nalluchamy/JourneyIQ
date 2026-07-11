@@ -1,30 +1,30 @@
 import csv
 import datetime
 import io
-from typing import Any, Optional
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models.user import User
 from app.models.order import Order
-from app.models.product import Product
+from app.models.user import User
 from app.schemas.response import APIResponse
 from app.services.analytics.customer_intelligence import CustomerIntelligenceService
 from app.services.analytics.funnel import JourneyFunnelService
-from app.services.analytics.sales_product import SalesProductAnalyticsService
 from app.services.analytics.insights import AIInsightsService
+from app.services.analytics.sales_product import SalesProductAnalyticsService
 
 router = APIRouter()
 
 from app.core.cache import cache
 
 
-def get_cached_data(key: str) -> Optional[Any]:
+def get_cached_data(key: str) -> Any | None:
     """Retrieve non-expired data from application cache."""
     return cache.get(key)
 
@@ -51,8 +51,8 @@ def check_owner_access(current_user: User) -> None:
 @router.get("/overview", response_model=APIResponse[dict[str, Any]], summary="Get Overview Metrics")
 async def get_overview(
     date_range: str = Query("last_30_days", description="Date range: today, yesterday, last_7_days, last_30_days, this_month, custom"),
-    start_date: Optional[str] = Query(None, description="Start date format YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="End date format YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="Start date format YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="End date format YYYY-MM-DD"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Any:
@@ -133,8 +133,8 @@ async def get_products(
 @router.get("/orders", response_model=APIResponse[dict[str, Any]], summary="Get Orders Analytics")
 async def get_orders(
     date_range: str = Query("last_30_days", description="Date range: today, yesterday, last_7_days, last_30_days, this_month, custom"),
-    start_date: Optional[str] = Query(None, description="Start date format YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="End date format YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="Start date format YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="End date format YYYY-MM-DD"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Any:
@@ -181,8 +181,8 @@ async def get_orders(
 @router.get("/analytics", response_model=APIResponse[dict[str, Any]], summary="Get Visualization Graphs")
 async def get_analytics_graphs(
     date_range: str = Query("last_30_days", description="Date range: today, yesterday, last_7_days, last_30_days, this_month, custom"),
-    start_date: Optional[str] = Query(None, description="Start date format YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="End date format YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="Start date format YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="End date format YYYY-MM-DD"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Any:

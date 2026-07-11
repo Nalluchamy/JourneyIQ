@@ -26,7 +26,9 @@ engine = create_async_engine(
 
 # Slow Query Logging Event Listeners
 import time
+
 from sqlalchemy import event
+
 
 @event.listens_for(engine.sync_engine, "before_cursor_execute")
 def before_cursor_execute(conn, cursor, statement, parameters, context, execmany):

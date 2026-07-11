@@ -11,7 +11,6 @@ from app.db.session import get_db
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.order_status_history import OrderStatusHistory
-from app.models.product import Product
 from app.models.user import User
 from app.schemas.common import PaginatedResponse
 from app.schemas.order import OrderRead
@@ -198,7 +197,7 @@ async def cancel_order(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Could not cancel order: {str(e)}"
+            detail=f"Could not cancel order: {e!s}"
         )
 
 

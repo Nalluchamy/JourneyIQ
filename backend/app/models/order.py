@@ -7,12 +7,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base_class import BaseModel
 
 if TYPE_CHECKING:
-    from app.models.order_item import OrderItem
-    from app.models.payment import Payment
-    from app.models.user import User
-    from app.models.shipping_address import ShippingAddress
-    from app.models.order_status_history import OrderStatusHistory
     from app.models.coupon_usage import CouponUsage
+    from app.models.order_item import OrderItem
+    from app.models.order_status_history import OrderStatusHistory
+    from app.models.payment import Payment
+    from app.models.shipping_address import ShippingAddress
+    from app.models.user import User
 
 
 class Order(BaseModel):

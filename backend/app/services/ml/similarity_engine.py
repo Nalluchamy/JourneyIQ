@@ -1,14 +1,12 @@
 import math
-from decimal import Decimal
-from typing import Any
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.event import Event
+from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.models.review import Review
-from app.models.order_item import OrderItem
-from app.models.event import Event
 
 
 class SimilarityEngine:
@@ -90,7 +88,7 @@ class SimilarityEngine:
 
                 dot_product = sum(user_vectors[u1][p] * user_vectors[u2][p] for p in common_prods)
                 norm_product = norms[u1] * norms[u2]
-                
+
                 similarity = dot_product / norm_product if norm_product > 0 else 0.0
                 if similarity > 0:
                     similarities[(u1, u2)] = similarity

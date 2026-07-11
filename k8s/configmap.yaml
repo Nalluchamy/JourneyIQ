@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: journeyiq-config
+  namespace: journeyiq
+  labels:
+    app: journeyiq
+data:
+  ENVIRONMENT: "production"
+  PORT: "8000"
+  BACKEND_URL: "https://api.journeyiq.com"
+  FRONTEND_URL: "https://www.journeyiq.com"
+  JWT_ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+  REQUIRE_EMAIL_VERIFICATION: "true"
+  LOG_LEVEL: "info"

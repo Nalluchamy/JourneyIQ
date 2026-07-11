@@ -1,7 +1,9 @@
-from collections import defaultdict
 import time
+from collections import defaultdict
+
 import structlog
 from fastapi import HTTPException, Request, status
+
 from app.core.config import settings
 
 logger = structlog.get_logger()
@@ -18,15 +20,15 @@ class InMemoryRateLimiter:
     async def __call__(self, request: Request) -> None:
         if settings.ENVIRONMENT == "testing":
             return
-        
+
         client_ip = request.client.host if request.client else "unknown"
-        
+
         # Resolve user ID context if exists
         user_id = None
         user_obj = getattr(request.state, "user", None)
         if user_obj:
             user_id = getattr(user_obj, "id", None)
-            
+
         client_key = f"user_{user_id}" if user_id else f"ip_{client_ip}"
         path = request.url.path
         limit_key = f"{client_key}:{path}"

@@ -1,14 +1,13 @@
 import datetime
-from decimal import Decimal
 from typing import Any
-from sqlalchemy import select, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.models.user import User
-from app.models.order import Order
+from sqlalchemy import delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.event import Event
+from app.models.order import Order
 from app.models.segment import Segment
+from app.models.user import User
 
 
 class CustomerIntelligenceService:
@@ -25,7 +24,7 @@ class CustomerIntelligenceService:
         # Fetch all customers
         users_stmt = select(User).where(User.is_deleted == False, User.role == "customer")
         users = (await self.db.execute(users_stmt)).scalars().all()
-        
+
         # Fetch all orders grouped by user
         orders_stmt = select(Order).where(Order.status == "confirmed")
         orders_res = await self.db.execute(orders_stmt)
@@ -36,7 +35,7 @@ class CustomerIntelligenceService:
             if o.user_id in user_orders:
                 user_orders[o.user_id].append(o)
 
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         results = []
 
         # Wipe existing segments to rewrite
@@ -55,7 +54,7 @@ class CustomerIntelligenceService:
                 # handle timezone awareness
                 created_at = latest_order.created_at
                 if created_at.tzinfo is None:
-                    created_at = created_at.replace(tzinfo=datetime.timezone.utc)
+                    created_at = created_at.replace(tzinfo=datetime.UTC)
                 recency_days = (now - created_at).days
 
             # 2. RFM Scores (1-5 scales)

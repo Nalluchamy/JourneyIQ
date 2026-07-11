@@ -3,11 +3,11 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
+from app.models.category import Category
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.models.user import User
-from app.models.category import Category
 
 
 @pytest.mark.asyncio

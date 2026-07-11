@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Any
 
 import numpy as np
@@ -93,8 +94,14 @@ class NCFPredictor:
         u_tensor = torch.tensor([user_idx], dtype=torch.long).to(self.device)
         p_tensor = torch.tensor([product_idx], dtype=torch.long).to(self.device)
 
+        start_time = time.perf_counter()
         with torch.no_grad():
             score = self.model(u_tensor, p_tensor).item()
+        duration = time.perf_counter() - start_time
+
+        from app.services.deep_learning.registry import NCFModelRegistry
+        NCFModelRegistry.track_inference(duration)
+
         return float(score)
 
     async def similar_products(
@@ -293,8 +300,13 @@ class NCFPredictor:
                     self.device
                 )
 
+                start_time = time.perf_counter()
                 with torch.no_grad():
                     scores = self.model(u_tensor, p_tensor).cpu().numpy()
+                duration = time.perf_counter() - start_time
+
+                from app.services.deep_learning.registry import NCFModelRegistry
+                NCFModelRegistry.track_inference(duration)
 
                 for i, prod in enumerate(p_ids_to_evaluate):
                     score = float(scores[i])

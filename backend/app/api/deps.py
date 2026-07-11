@@ -38,7 +38,7 @@ async def get_current_user_optional(
     user = result.scalar_one_or_none()
     if user is None or not user.is_active or user.is_deleted:
         return None
-    
+
     from structlog.contextvars import bind_contextvars
     bind_contextvars(user_id=user.id)
     request.state.user = user

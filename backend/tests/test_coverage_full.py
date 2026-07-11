@@ -1,12 +1,12 @@
+from decimal import Decimal
+
 import pytest
 import pytest_asyncio
-from decimal import Decimal
 from httpx import AsyncClient
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Category, Product, User, Coupon, ShippingAddress
 from app.core.security import create_access_token, get_password_hash
+from app.models import Category, Coupon, Product, ShippingAddress, User
 
 
 @pytest_asyncio.fixture
@@ -62,7 +62,7 @@ async def seed_full_data(db_session: AsyncSession) -> dict:
 
     # 4. Coupon
     import datetime
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     coupon = Coupon(
         code="OFFER15",
         discount_type="percentage",
@@ -92,7 +92,7 @@ async def seed_full_data(db_session: AsyncSession) -> dict:
 async def test_auth_recovery_and_change(client: AsyncClient, seed_full_data: dict) -> None:
     """Verifies password reset requests, token generation, and updates."""
     headers = seed_full_data["headers"]
-    
+
     # 1. Forgot password
     forgot_payload = {"email": "cov_user@example.com"}
     res = await client.post("/api/v1/auth/forgot-password", json=forgot_payload)

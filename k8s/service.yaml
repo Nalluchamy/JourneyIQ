@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: journeyiq-backend-svc
+  namespace: journeyiq
+  labels:
+    app: journeyiq
+    component: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: journeyiq
+    component: backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: journeyiq-frontend-svc
+  namespace: journeyiq
+  labels:
+    app: journeyiq
+    component: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: journeyiq
+    component: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: journeyiq-ml-service-svc
+  namespace: journeyiq
+  labels:
+    app: journeyiq
+    component: ml-service
+spec:
+  type: ClusterIP
+  selector:
+    app: journeyiq
+    component: ml-service
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+      protocol: TCP

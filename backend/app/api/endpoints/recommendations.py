@@ -1,19 +1,24 @@
 from typing import Any
+
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models.recommendation import Recommendation
-from app.models.product import Product
-from app.models.review import Review
-from app.models.order_item import OrderItem
 from app.models.event import Event
+from app.models.order_item import OrderItem
+from app.models.product import Product
+from app.models.recommendation import Recommendation
+from app.models.review import Review
 from app.models.user import User
-from app.schemas.recommendation import RecommendationRead
 from app.schemas.product import ProductRead
+from app.schemas.recommendation import (
+    DeepRecommendationRead,
+    ModelComparisonRead,
+    RecommendationRead,
+)
 from app.schemas.response import APIResponse
 
 router = APIRouter()
@@ -147,14 +152,15 @@ async def get_popular_products(
 # ========================================================
 # DEEP LEARNING RECOMMENDATION ENGINE ENDPOINTS (NCF)
 # ========================================================
-import os
 import json
+import os
+
 from app.services.deep_learning.inference import NCFInferenceService
 
 MODEL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "models"))
 
 
-@router.get("/deep", summary="Get deep learning product recommendations")
+@router.get("/deep", response_model=APIResponse[list[DeepRecommendationRead]], summary="Get deep learning product recommendations")
 async def get_deep_recommendations(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -169,7 +175,7 @@ async def get_deep_recommendations(
     )
 
 
-@router.get("/deep/similar/{product_id}", summary="Get deep learning similar products")
+@router.get("/deep/similar/{product_id}", response_model=APIResponse[list[DeepRecommendationRead]], summary="Get deep learning similar products")
 async def get_deep_similar_products(
     product_id: int,
     db: AsyncSession = Depends(get_db),
@@ -184,7 +190,7 @@ async def get_deep_similar_products(
     )
 
 
-@router.get("/deep/compare", summary="Compare hybrid vs deep learning models")
+@router.get("/deep/compare", response_model=APIResponse[ModelComparisonRead], summary="Compare hybrid vs deep learning models")
 async def compare_recommendation_models(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -207,20 +213,20 @@ async def compare_recommendation_models(
     # 3. Read metadata and metrics
     metadata = {}
     metrics = {}
-    
+
     metadata_path = os.path.join(MODEL_DIR, "model_metadata.json")
     metrics_path = os.path.join(MODEL_DIR, "evaluation_metrics.json")
-    
+
     if os.path.exists(metadata_path):
         try:
-            with open(metadata_path, "r") as f:
+            with open(metadata_path) as f:
                 metadata = json.load(f)
         except Exception:
             pass
-            
+
     if os.path.exists(metrics_path):
         try:
-            with open(metrics_path, "r") as f:
+            with open(metrics_path) as f:
                 metrics = json.load(f)
         except Exception:
             pass

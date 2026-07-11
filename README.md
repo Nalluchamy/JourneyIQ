@@ -1,197 +1,152 @@
-# JourneyIQ – Personalized Customer Journey Optimization Platform
+# JourneyIQ — Personalized Retail & Customer Journey Intelligence Platform
 
-JourneyIQ is an enterprise-grade retail platform built to optimize customer shopping journeys using real-time behavioral heuristics, cohort segmentation, and machine learning-driven recommendations.
+JourneyIQ is a production-hardened, enterprise-grade retail SaaS platform built to optimize customer shopping journeys using real-time behavioral heuristics, cohort segmentation, and machine learning-driven recommendations.
 
-This represents **Phase 1 – Foundation & Project Architecture**, establishing a production-ready boilerplate with async databases, Docker orchestration, standardized API versioning, robust logging, error boundary handlers, and developer quality suites.
+This repository contains the complete **v1.0.0 Release Candidate** codebase, integrating a premium 3D-styled Customer Storefront with an internal Owner Analytics Dashboard, powered by an asynchronous FastAPI backend, a PyTorch Neural Collaborative Filtering (NCF) recommendation service, and a PostgreSQL (Supabase) database layer.
 
 ---
 
-## Technology Stack
+## 🌟 Platform Capabilities
+
+- **Vibrant Customer Storefront**: High-performance responsive shopping experience featuring 3D tilt interaction depth cards, an interactive 360-degree product rotation viewer, sticky add-to-cart controls, and multi-step animated checkout checkouts.
+- **Owner Analytics Dashboard**: Flat, high-readability operations telemetry panel displaying live revenue telemetry, RFM customer segments, active model registries, and system cache stats.
+- **Deep Learning Recommendation Engine**: PyTorch-driven Neural Collaborative Filtering (NCF) processing customer-item embeddings, backed by a hybrid content-popularity filter to handle cold-start new sessions.
+- **MLOps Model Registry**: Autonomous APScheduler training loop generating versioned model artifacts with metadata, validation loss monitoring, and one-click rollback endpoints.
+- **Prometheus Telemetry Metrics**: Operational `/api/v1/system/prometheus` endpoint exposing CPU, memory, SQLAlchemy db pools, Redis cache hit ratios, and average inference latency gauges.
+- **Hardened Security & Backups**: Dynamic rate-limiting, JWT-based security middleware, and automatic database/model checkpoint backups with SHA-256 validation.
+- **PWA & Offline Recovery**: Full web app manifest caching (`manifest.json` & `sw.js` service worker) alongside an offline connection status detection screen.
+
+---
+
+## 🛠️ Technology Stack
 
 ### Frontend
-- **React 18** (TypeScript, Vite)
-- **Styling**: TailwindCSS & shadcn/ui design tokens
-- **Routing**: React Router v6
-- **Data Fetching**: TanStack React Query & Axios
-- **Localization**: react-i18next
+- **React 18** (TypeScript, Vite 6)
+- **Styling**: Vanilla CSS with custom HSL gradient tokens and animations
+- **Routing**: React Router v6 (optimized with route-based lazy loading & Suspense)
+- **State Management & Fetching**: TanStack React Query & Axios
+- **PWA**: Custom Service Worker caching & Install prompts
 
 ### Backend
 - **FastAPI** (Python 3.13+)
-- **ORM & Database**: SQLAlchemy (using `asyncpg` driver for full async database operations)
-- **Migrations**: Alembic
+- **ORM & Database**: SQLAlchemy (fully asynchronous connection pools via `asyncpg`)
 - **Validation**: Pydantic v2
-- **Logging**: Structlog (Structured JSON logs in production, colored console logs in development)
+- **Logging**: Structlog JSON logs
 
-### ML Service
-- **FastAPI** (Python 3.13+) skeleton prepared for recommendation engines, embedding pipelines, and CLV predictive scorers.
+### ML & AI Services
+- **PyTorch 2.0+** (NCF Embeddings & Collaborative Filtering)
+- **Scheduler**: APScheduler (automated training pipelines)
 
-### Infrastructure & Tooling
-- **Orchestration**: Docker & Docker Compose with container healthchecks
-- **CI/CD**: GitHub Actions
-- **Quality Tools**: Ruff, Black, isort, mypy (Backend) & ESLint, Prettier (Frontend)
+### Infrastructure & Operations
+- **Containerization**: Multi-environment Docker & Docker Compose configurations
+- **Orchestration**: Kubernetes manifests (Deployment, Ingress, ConfigMaps, Secrets)
+- **CI/CD & Security**: GitHub Actions (CodeQL, Dependabot, Secret scanning)
+- **Monitoring**: Prometheus scraping target compatible
 
 ---
 
-## Repository Layout
+## 📂 Repository Layout
 
 ```text
 JourneyIQ/
-├── .github/
-│   └── workflows/
-│       └── ci.yml             # GitHub Actions CI configurations
+├── .github/workflows/         # CodeQL security scans, linting, and releases
 ├── backend/
 │   ├── app/
-│   │   ├── api/
-│   │   │   ├── endpoints/
-│   │   │   │   └── health.py  # Enhanced /health endpoint (checks DB connectivity)
-│   │   │   └── api.py         # Consolidated API routers mapping /api/v1/...
-│   │   ├── core/
-│   │   │   ├── config.py      # Pydantic Settings configuration loader
-│   │   │   └── logging_config.py # Structlog configurations
-│   │   ├── db/
-│   │   │   ├── base_class.py  # Declarative Base metadata setup
-│   │   │   └── session.py     # Async engine and AsyncSessionLocal provider
-│   │   ├── models/            # Empty placeholder for database models
-│   │   ├── schemas/           # Empty placeholder for Pydantic schemas
-│   │   ├── services/          # Empty placeholder for business logic services
-│   │   ├── utils/             # Empty placeholder for auxiliary helper functions
-│   │   └── main.py            # FastAPI main application with middleware
-│   ├── migrations/            # Alembic migrations folder (async environment setup)
-│   ├── alembic.ini            # Alembic CLI config
-│   ├── pyproject.toml         # Ruff, Black, isort, and mypy parameters
-│   ├── requirements.txt       # Python backend dependencies
-│   └── Dockerfile             # Multi-stage python runner
+│   │   ├── api/endpoints/    # REST routes (auth, products, system diagnostics)
+│   │   ├── core/             # Config loaders and logger setups
+│   │   ├── db/               # Async engine and session factories
+│   │   ├── models/           # SQLAlchemy database entities (User, Product, Order)
+│   │   ├── schemas/          # Pydantic validation schemas
+│   │   ├── services/         # NCF Model Registry, ML inference, and payments
+│   │   └── main.py           # FastAPI gateway with rate-limiting & timeout middleware
+│   ├── migrations/           # Alembic database migration scripts
+│   ├── requirements.txt      # Python backend package list
+│   └── Dockerfile            # Multi-stage python image definition
 ├── frontend/
+│   ├── public/               # manifest.json, sw.js cache worker, SVG assets
 │   ├── src/
-│   │   ├── assets/
-│   │   ├── components/        # Reusable presentation components
-│   │   ├── i18n/
-│   │   │   ├── en.json        # Central English translation copy
-│   │   │   └── i18n.ts        # react-i18next bootsrapper
-│   │   ├── layouts/
-│   │   │   └── MainLayout.tsx # Responsive header, navigation links, and footer layout
-│   │   ├── lib/               # Utility functions or integrations
-│   │   ├── pages/
-│   │   │   ├── Home.tsx       # Landing page (Hero and Features)
-│   │   │   ├── Products.tsx   # Placeholder page
-│   │   │   ├── About.tsx      # Placeholder page
-│   │   │   └── Contact.tsx    # Placeholder page
-│   │   ├── routes/            # Route configurations
-│   │   ├── services/
-│   │   │   └── api.ts         # Centralized Axios client (timeouts & interceptors)
-│   │   ├── App.tsx            # Main router and query provider bootstrap
-│   │   ├── index.css          # Design system stylesheet mapping HSL vars
-│   │   └── main.tsx           # React app mount
-│   ├── .eslintrc.json         # ESLint configurations
-│   ├── .prettierrc            # Prettier configurations
-│   ├── package.json           # Frontend dependencies and npm scripts
-│   ├── tsconfig.json          # Root typescript reference configuration
-│   ├── vite.config.ts         # Vite bundler parameters with path alias
-│   └── Dockerfile             # Node-alpine dev server
-├── ml-service/
-│   ├── app/
-│   │   └── main.py            # Skeleton FastAPI entrypoint
-│   ├── Dockerfile             # Python runner for ML services (port 8001)
-│   ├── requirements.txt       # Python ML service packages
-│   └── README.md              # Machine learning onboarding instructions
-├── docs/                      # General architectural guides
-├── docker-compose.yml         # Dev environment container orchestrator
-├── .env.example               # Environment variables template
-├── .gitignore                 # System & environment exclusion rules
-└── README.md                  # This file
+│   │   ├── components/ui/    # Accessible design system components (Button, Input)
+│   │   ├── context/          # Unified NotificationContext toast providers
+│   │   ├── layouts/          # MainLayout responsive header & mobile navigation drawer
+│   │   ├── pages/            # Lazy-loaded views (Catalog, Detail, Cart, Dashboard)
+│   │   ├── services/api.ts   # Axios API client client mappings
+│   │   └── App.tsx           # Router and Query provider bootstrap
+│   ├── tests/e2e/            # Playwright E2E integration test suite
+│   ├── playwright.config.ts  # Playwright browser parameters
+│   └── package.json          # Node dependencies and build scripts
+├── ml-service/               # Python ML models microservices definitions
+├── nginx/                    # Reverse-proxy reverse configurations
+├── scripts/                  # Backup/restore and database seeders scripts
+├── k8s/                      # Kubernetes deployment & ingress manifests
+├── docker-compose.yml        # Orchestration compose definition
+└── README.md                 # This file
 ```
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose installed.
-- Node.js v20+ and Python 3.13+ (only if running locally without Docker).
+- [Docker & Docker Compose](https://www.docker.com/products/docker-desktop/)
+- [Node.js v20+](https://nodejs.org/) & [Python 3.13+](https://www.python.org/) (if running locally outside containers)
 
-### Configuration
-Copy the environment variables template and customize as required:
+### Setup Configurations
+1. Copy the environment variables template:
+   ```bash
+   cp .env.example .env
+   ```
+2. Update `.env` with your JWT secrets and Postgres credentials.
+
+### Run with Docker (Recommended)
+Build and run the entire SaaS application stack (Postgres, Redis, Backend, ML, Frontend):
 ```bash
-cp .env.example .env
+docker-compose -f docker-compose.prod.yml up --build -d
+```
+Access points:
+- **Customer Storefront**: `http://localhost:5173`
+- **FastAPI Backend Gateway**: `http://localhost:8000`
+- **Telemetry Swagger Documentation**: `http://localhost:8000/docs`
+- **Prometheus Metrics Endpoints**: `http://localhost:8000/api/v1/system/prometheus`
+
+---
+
+## 🧪 Quality Assurance & Testing
+
+Before completing release candidates, verify all test suites execute successfully:
+
+### 1. Backend Pytest Suite
+Run the 68 async API unit/integration tests:
+```bash
+cd backend
+$env:PYTHONPATH="."  # PowerShell
+pytest
+```
+
+### 2. Frontend Playwright E2E Tests
+Run E2E storefront workflows (Auth, Catalog, Cart, Checkout, Dashboard tabs):
+```bash
+cd frontend
+npx playwright test
+```
+
+### 3. Backend Python Linting
+Ensure zero warnings from Ruff:
+```bash
+cd backend
+ruff check .
+```
+
+### 4. Frontend Type Checking & Production Build
+Validate typescript compiles with zero errors:
+```bash
+cd frontend
+npm run build
 ```
 
 ---
 
-## Installation & Deployment
+## 🛡️ Security Audits
 
-### Running with Docker (Recommended)
-Launch all services (PostgreSQL, FastAPI Backend, ML Service, and React Frontend) with health checks:
-```bash
-docker-compose up --build
-```
-
-#### Services Available:
-- **Frontend App**: `http://localhost:5173`
-- **FastAPI Backend (API v1)**: `http://localhost:8000`
-- **Interactive Swagger Docs**: `http://localhost:8000/docs`
-- **ML Service**: `http://localhost:8001`
-- **PostgreSQL Database**: `localhost:5432`
-
----
-
-## Running Services Locally (Development mode)
-
-### 1. Database (PostgreSQL)
-Ensure you have a running PostgreSQL database and update the `DATABASE_URL` in your local `.env`.
-
-### 2. Backend API
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a python virtual environment:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Start the FastAPI service:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-
-### 3. Frontend App
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install package dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-
----
-
-## Quality Tooling & Verification
-
-### Backend Quality Commands
-Execute inside the `/backend` folder:
-- **Ruff Lint Check**: `ruff check .`
-- **Black Format Check**: `black --check .`
-- **Isort Import Check**: `isort --check-only .`
-- **Mypy Type Verification**: `mypy .`
-
-### Frontend Quality Commands
-Execute inside the `/frontend` folder:
-- **ESLint Lint Check**: `npm run lint`
-- **Prettier Format Check**: `npm run format:check`
-- **Type Checking & Compilation**: `npm run build`
-
----
-
-## Future Roadmap
-- **Phase 2**: Implement JWT-based OAuth2 Authentication, Session Tracking hooks in the frontend, and User behavior database schema.
-- **Phase 3**: Implement the ML recommendations API (linking `ml-service` to the main backend) and A/B Testing engines.
-- **Phase 4**: Customer dashboard analytics and telemetry visualization.
+Validate package vulnerability dependencies are 100% clean:
+- **Frontend Check**: `npm audit` (Vite 6 and overrides applied to guarantee 0 vulnerabilities)
+- **Backend Check**: `pip-audit`

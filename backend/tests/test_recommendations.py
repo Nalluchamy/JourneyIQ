@@ -1,16 +1,15 @@
-import datetime
 from decimal import Decimal
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
-from app.models import Category, Product, User, Event, Review, Order, OrderItem, Recommendation
+from app.models import Category, Event, Product, Recommendation, Review, User
 from app.services.ml.feature_builder import FeatureBuilder
-from app.services.ml.similarity_engine import SimilarityEngine
-from app.services.ml.hybrid_ranker import HybridRanker
 from app.services.ml.recommendation_service import RecommendationService
+from app.services.ml.similarity_engine import SimilarityEngine
 
 
 @pytest.mark.asyncio
