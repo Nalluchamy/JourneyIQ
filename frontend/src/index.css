@@ -10,34 +10,34 @@ h1, h2, h3, h4, h5, h6, .font-display {
 
 @layer base {
   :root {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+    --background: 270 100% 99%;
+    --foreground: 222.2 47.4% 11.2%;
 
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.4 16.3% 56.9%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
 
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
+    --border: 264 20% 90%;
+    --input: 264 20% 90%;
 
-    --primary: 263.4 70% 50.4%;
+    --primary: 246 68% 47%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 222.2 47.4% 11.2%;
+    --secondary: 189 100% 24%;
     --secondary-foreground: 210 40% 98%;
 
-    --accent: 216 34% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --ring: 263.4 70% 50.4%;
+    --ring: 246 68% 47%;
 
     --radius: 0.75rem;
   }
@@ -117,30 +117,65 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .glass-morphism {
-  background: rgba(10, 15, 30, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(226, 223, 235, 0.6);
 }
 
 .glass-morphism-premium {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(226, 223, 235, 0.8);
 }
 
 .text-gradient {
-  background: linear-gradient(to right, #6366f1, #8b5cf6, #06b6d4);
+  background: linear-gradient(to right, #3525cd, #00687a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .bg-brand-gradient {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0891b2 100%);
+  background: linear-gradient(135deg, #3525cd 0%, #4f46e5 50%, #00687a 100%);
 }
 
 .card-3d {
   transform-style: preserve-3d;
   perspective: 1000px;
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+  background-color: #ffffff;
+  border-color: #e2dfeb;
 }
+
+/* Global Overrides for Light UX */
+h1, h2, h3, h4, h5, h6, .text-white {
+  color: #1e293b !important;
+}
+
+.text-muted-foreground, .text-slate-400, .text-slate-350, .text-slate-300 {
+  color: #4b5563 !important;
+}
+
+.bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(226, 223, 235, 0.6) !important;
+}
+
+.bg-black\/40 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  color: #1e293b !important;
+}
+
+.border-white\/10 {
+  border-color: #e2dfeb !important;
+}
+
+.bg-slate-900, .bg-[#111827] {
+  background-color: #ffffff !important;
+  border-color: #e2dfeb !important;
+}
+
+.border-slate-800, .border-slate-850 {
+  border-color: #e2dfeb !important;
+}
+
 
