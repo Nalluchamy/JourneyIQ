@@ -10,34 +10,34 @@ h1, h2, h3, h4, h5, h6, .font-display {
 
 @layer base {
   :root {
-    --background: 270 100% 99%;
-    --foreground: 222.2 47.4% 11.2%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 0 0% 0%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card-foreground: 0 0% 0%;
 
-    --border: 264 20% 90%;
-    --input: 264 20% 90%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
 
-    --primary: 246 68% 47%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 189 100% 24%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --ring: 246 68% 47%;
+    --ring: 0 0% 0%;
 
     --radius: 0.75rem;
   }
@@ -146,48 +146,49 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border-color: #e2dfeb;
 }
 
-/* Global Overrides for Light UX */
+/* Global Overrides for Black & White Minimalist Layout */
 body {
-  color: #1e293b !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 h1, h2, h3, h4, h5, h6, .font-display {
-  color: #0f172a !important;
+  color: #000000 !important;
 }
 
 .text-muted-foreground, .text-slate-450, .text-slate-500 {
-  color: #4b5563 !important;
+  color: #555555 !important;
 }
 
 .bg-white\/5 {
-  background-color: rgba(255, 255, 255, 0.75) !important;
-  border-color: rgba(226, 223, 235, 0.6) !important;
+  background-color: #ffffff !important;
+  border-color: #e5e5e5 !important;
 }
 
 .bg-black\/40 {
-  background-color: rgba(255, 255, 255, 0.5) !important;
-  color: #1e293b !important;
+  background-color: #f9f9f9 !important;
+  color: #000000 !important;
 }
 
 .border-white\/10 {
-  border-color: #e2dfeb !important;
+  border-color: #e5e5e5 !important;
 }
 
 .bg-slate-900, .bg-\[\#111827\], .bg-\[\#0a0f1e\], .bg-slate-950 {
   background-color: #ffffff !important;
-  border-color: #e2dfeb !important;
+  border-color: #e5e5e5 !important;
 }
 
 .border-slate-800, .border-slate-850 {
-  border-color: #e2dfeb !important;
+  border-color: #e5e5e5 !important;
 }
 
-/* Ensure text inside standard light dashboard cards and tables is dark slate for high contrast */
+/* Ensure text inside standard light dashboard cards and tables is pure black for maximum readability */
 .bg-slate-900 *, .bg-\[\#111827\] *, .bg-\[\#0a0f1e\] *, .glass-morphism *, .glass-morphism-premium * {
-  color: #1e293b;
+  color: #000000;
 }
 
-/* Retain high-contrast white text for primary actions, buttons, and status labels */
+/* Style all primary action buttons, links, and status pills as high-contrast solid black with white text */
 button, button *, 
 .bg-indigo-600, .bg-indigo-600 *, 
 .bg-emerald-600, .bg-emerald-600 *,
@@ -196,22 +197,52 @@ button, button *,
 .bg-primary, .bg-primary *,
 .bg-secondary, .bg-secondary *,
 .text-white-force {
+  background-color: #000000 !important;
   color: #ffffff !important;
+  border-color: #000000 !important;
 }
 
-/* Style the dashboard sidebar links for light mode */
+/* Style secondary/hollow buttons as pure white with black borders */
+button.border, button.border *,
+button.bg-slate-850, button.bg-slate-850 * {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
+
+/* Style the dashboard sidebar links */
 aside a, aside button, nav a, nav button {
-  color: #334155 !important;
+  color: #000000 !important;
 }
 
 aside a:hover, aside button:hover, nav a:hover, nav button:hover {
-  color: #3525cd !important;
+  color: #555555 !important;
+}
+
+/* Custom gradients replaced by minimal black/white styles */
+.text-gradient {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  color: #000000 !important;
+  font-weight: 850;
+}
+
+.bg-brand-gradient {
+  background: #000000 !important;
+}
+
+.glass-morphism, .glass-morphism-premium {
+  background: #ffffff !important;
+  border: 1px solid #e5e5e5 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
 }
 
 /* Muted spans */
 span.text-slate-400, span.text-slate-300, p.text-slate-300, p.text-slate-400 {
-  color: #4b5563 !important;
+  color: #555555 !important;
 }
+
 
 
 
