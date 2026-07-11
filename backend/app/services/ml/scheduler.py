@@ -117,15 +117,19 @@ async def run_hourly_metrics_logger() -> None:
         await asyncio.sleep(3600)
 
 
+async def _run_scheduler_loops() -> None:
+    await asyncio.gather(
+        run_daily_pipeline(),
+        run_hourly_metrics_logger()
+    )
+
+
 def start_scheduler() -> None:
     """Start background loops."""
     global _scheduler_task
     logger.info("Starting background recommendations scheduler tasks")
     loop = asyncio.get_event_loop()
-    _scheduler_task = loop.create_task(asyncio.gather(
-        run_daily_pipeline(),
-        run_hourly_metrics_logger()
-    ))
+    _scheduler_task = loop.create_task(_run_scheduler_loops())
 
 
 def stop_scheduler() -> None:
