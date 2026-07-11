@@ -206,6 +206,54 @@ export const Dashboard: React.FC = () => {
   // Sales tab detailed table view toggle
   const [showDetailedSales, setShowDetailedSales] = useState(false);
 
+  // Tour/Walkthrough States
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  useEffect(() => {
+    const completed = localStorage.getItem('dashboard_tour_completed');
+    if (!completed) {
+      setShowTour(true);
+    }
+  }, []);
+
+  const handleNextTourStep = () => {
+    if (tourStep < 4) {
+      setTourStep(prev => prev + 1);
+    } else {
+      setShowTour(false);
+      localStorage.setItem('dashboard_tour_completed', 'true');
+    }
+  };
+
+  const handleSkipTour = () => {
+    setShowTour(false);
+    localStorage.setItem('dashboard_tour_completed', 'true');
+  };
+
+  const tourStepsData = [
+    {
+      title: 'Welcome to your JourneyIQ Dashboard! 🚀',
+      content: 'This quick walkthrough will guide you through the business dashboard in plain language. Let\'s get started!',
+    },
+    {
+      title: '1. Home Overview 🟢',
+      content: 'This is the main view showing your active sessions, inventory counts, and daily revenue. The color-coded lights tell you if items need attention.',
+    },
+    {
+      title: '2. Customer groups & loyalty 👥',
+      content: 'Under "Customers", we group your visitors into lists like "Big Spenders" or "At Risk" so you know who to send discounts to.',
+    },
+    {
+      title: '3. AI Recommendations & Insights 💡',
+      content: 'Under "AI Insights", our machine learning engine automatically reviews your store data and writes down actionable suggestions.',
+    },
+    {
+      title: '4. System Settings & Backups ⚙️',
+      content: 'Configure store parameters, switch dark modes, customize taxes, and set up daily database backups automatically.',
+    }
+  ];
+
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     setSettingsSaved(true);
@@ -956,6 +1004,40 @@ export const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Interactive Tour Walkthrough Popup */}
+      {showTour && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-xl border border-indigo-500 bg-[#1e293b] p-6 shadow-2xl relative">
+            <div className="absolute top-4 right-4 text-xs font-bold text-slate-500">
+              Step {tourStep + 1} of {tourStepsData.length}
+            </div>
+            
+            <h3 className="text-lg font-bold text-white mb-2">
+              {tourStepsData[tourStep].title}
+            </h3>
+            <p className="text-sm text-slate-350 leading-relaxed mb-6 font-medium">
+              {tourStepsData[tourStep].content}
+            </p>
+            
+            <div className="flex items-center justify-between">
+              <button 
+                onClick={handleSkipTour}
+                className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+              >
+                Skip Tour
+              </button>
+              
+              <button
+                onClick={handleNextTourStep}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors"
+              >
+                {tourStep === tourStepsData.length - 1 ? 'Finish' : 'Next'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
