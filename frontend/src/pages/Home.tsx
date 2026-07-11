@@ -66,9 +66,26 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     const fetchRecommendations = async () => {
+      setLoading(true);
+
+      // Always fetch trending and popular (public, no auth required)
       try {
-        setLoading(true);
-        if (isAuthenticated) {
+        const trendData = await recommendationsApi.getTrending();
+        setTrending(trendData || []);
+      } catch (err) {
+        console.error('Failed to load trending products:', err);
+      }
+
+      try {
+        const popData = await recommendationsApi.getPopular();
+        setPopular(popData || []);
+      } catch (err) {
+        console.error('Failed to load popular products:', err);
+      }
+
+      // Only fetch personalized recommendations if logged in
+      if (isAuthenticated) {
+        try {
           const recData = await recommendationsApi.getPersonalized();
           setRecommended(recData || []);
 
@@ -79,22 +96,17 @@ export const Home: React.FC = () => {
               recommended_pids: recData.map((r: any) => r.product_id),
             });
           }
+        } catch (err) {
+          console.error('Failed to load personalized recommendations:', err);
         }
-
-        const trendData = await recommendationsApi.getTrending();
-        setTrending(trendData || []);
-
-        const popData = await recommendationsApi.getPopular();
-        setPopular(popData || []);
-      } catch (err) {
-        console.error('Failed to load recommendation blocks:', err);
-      } finally {
-        setLoading(false);
       }
+
+      setLoading(false);
     };
 
     fetchRecommendations();
   }, [isAuthenticated]);
+
 
   const handleRecClick = (productId: number) => {
     eventsApi.trackEvent('recommendation_click', '/', productId, { source: 'homepage_recommended' });
