@@ -121,7 +121,9 @@ async def register(
 
     # Trigger verification email (mocked) to satisfy tests and confirm registration
     mail_service = get_mail_service()
-    await mail_service.send_verification_email(user.email)
+    from app.core.security import create_verification_token
+    verification_token = create_verification_token(user.email)
+    await mail_service.send_verification_email(user.email, verification_token)
 
     await db.commit()
 
