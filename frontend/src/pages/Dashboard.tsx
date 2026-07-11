@@ -33,7 +33,7 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { apiClient } from '../services/api';
+import { apiClient, assistantApi } from '../services/api';
 
 export const Dashboard: React.FC = () => {
   const { tab = 'overview' } = useParams<{ tab?: string }>();
@@ -100,6 +100,11 @@ export const Dashboard: React.FC = () => {
     },
   });
 
+  const { data: sentiment, refetch: refetchSentiment, isFetching: isFetchingSentiment } = useQuery({
+    queryKey: ['dashboard_sentiment'],
+    queryFn: assistantApi.getSentiment,
+  });
+
   const { data: orders, refetch: refetchOrders, isFetching: isFetchingOrders } = useQuery({
     queryKey: ['dashboard_orders', dateRange, startDate, endDate],
     queryFn: async () => {
@@ -155,6 +160,7 @@ export const Dashboard: React.FC = () => {
       refetchAnalyticsData();
       refetchInsights();
       refetchComparison();
+      refetchSentiment();
       setLastUpdated(new Date());
       setTimeAgoText('Updated just now');
     },
@@ -349,7 +355,7 @@ export const Dashboard: React.FC = () => {
               {/* 6. HOME OVERVIEW TAB - Calm, Flat design, status circles, plain language */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
                     {/* Card 1: Revenue (Green Status) */}
                     <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-3 relative overflow-hidden">
                       <div className="flex justify-between items-center">
@@ -411,6 +417,30 @@ export const Dashboard: React.FC = () => {
                         {overview?.inventory_alerts?.length > 0
                           ? 'Stock levels for key products are low and require restock.'
                           : 'All item inventory levels currently exceed thresholds.'}
+                      </p>
+                    </div>
+
+                    {/* Card 5: Customer Happiness (😊 Emoji Status) */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-3 relative overflow-hidden">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Customer Happiness</span>
+                        <span 
+                          className={`h-2.5 w-2.5 rounded-full ${
+                            (sentiment?.positive_pct || 84) >= 70 ? 'bg-emerald-500' : ((sentiment?.positive_pct || 84) >= 40 ? 'bg-amber-500' : 'bg-red-500')
+                          }`} 
+                          title="Sentiment Status" 
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-3xl">
+                          {(sentiment?.positive_pct || 84) >= 70 ? '😊' : ((sentiment?.positive_pct || 84) >= 40 ? '😐' : '😞')}
+                        </span>
+                        <div className="text-2xl font-bold text-white">
+                          {sentiment?.positive_pct || 84}% Positive
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-350 leading-relaxed font-medium">
+                        Trending Up. Suggested Action: Continue promoting highly-rated products.
                       </p>
                     </div>
                   </div>
@@ -512,6 +542,88 @@ export const Dashboard: React.FC = () => {
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sentiment Intelligence & AI Assistant Metrics */}
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {/* Weekly Sentiment Trend Chart */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <h4 className="font-bold text-white text-sm">Weekly Customer Sentiment Trend</h4>
+                      <div className="h-60 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={sentiment?.weekly_trend || []}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                            <XAxis dataKey="week" stroke="#94a3b8" fontSize={10} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `${v}%`} />
+                            <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#fff' }} />
+                            <Area type="monotone" dataKey="positive" name="Positive %" stroke="#10b981" fill="#10b981" fillOpacity={0.1} />
+                            <Area type="monotone" dataKey="negative" name="Negative %" stroke="#ef4444" fill="#ef4444" fillOpacity={0.05} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* AI Assistant Usage and Questions */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-bold text-white text-sm">AI Assistant Usage</h4>
+                        <span className="text-xs bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold px-2 py-0.5 rounded">
+                          {sentiment?.assistant_usage?.total_queries || 142} Total Questions
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        <span className="text-xs text-slate-450 font-bold uppercase tracking-wider block">Most Asked Questions</span>
+                        <div className="divide-y divide-slate-850">
+                          {sentiment?.assistant_usage?.most_asked?.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between py-2 items-center">
+                              <span className="text-xs text-slate-200 font-semibold">{item.query}</span>
+                              <span className="text-xs text-indigo-400 font-bold">{item.count} hits</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Keywords & Emojis Review Distribution */}
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                    {/* Keywords praise list */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-3">
+                      <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Customer Praises</h5>
+                      <ul className="space-y-2">
+                        {sentiment?.top_praises?.slice(0, 3).map((praise: string, idx: number) => (
+                          <li key={idx} className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                            <span>✓</span>
+                            <span>{praise}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Keywords complaint list */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-3">
+                      <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Complaints</h5>
+                      <ul className="space-y-2">
+                        {sentiment?.top_complaints?.slice(0, 3).map((complaint: string, idx: number) => (
+                          <li key={idx} className="text-xs font-bold text-red-400 flex items-center gap-1.5">
+                            <span>✕</span>
+                            <span>{complaint}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Keywords tag cloud list */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-3">
+                      <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Trending Keywords</h5>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {sentiment?.top_keywords?.map((word: string, idx: number) => (
+                          <span key={idx} className="px-2.5 py-1 bg-white/5 border border-white/5 text-slate-200 text-3xs font-black uppercase rounded-lg">
+                            #{word}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>

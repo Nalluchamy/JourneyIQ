@@ -1,22 +1,22 @@
 {
-  "version": "v1783784971",
-  "active_filename": "ncf_model_v1783784971.pt",
-  "trained_at": "2026-07-11T15:49:31Z",
-  "training_time_seconds": 1.4,
+  "version": "v1783787554",
+  "active_filename": "ncf_model_v1783787554.pt",
+  "trained_at": "2026-07-11T16:32:34Z",
+  "training_time_seconds": 1.33,
   "best_epoch": 2,
-  "best_val_loss": 0.31786,
+  "best_val_loss": 0.32812,
   "history": {
     "epochs": [
       1,
       2
     ],
     "train_losses": [
-      0.32981,
-      0.32365
+      0.34867,
+      0.33848
     ],
     "val_losses": [
-      0.32365,
-      0.31786
+      0.33848,
+      0.32812
     ]
   }
 }

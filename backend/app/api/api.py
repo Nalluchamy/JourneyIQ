@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.endpoints import (
     addresses,
+    assistant,
     auth,
     cart,
     categories,
@@ -45,4 +46,5 @@ api_router.include_router(coupons.router, prefix="/coupons", tags=["coupons"], d
 api_router.include_router(payments.router, prefix="/payments", tags=["payments"], dependencies=[Depends(limiter_public)])
 api_router.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"], dependencies=[Depends(limiter_recommendations)])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"], dependencies=[Depends(limiter_dashboard)])
+api_router.include_router(assistant.router, prefix="/assistant", tags=["assistant"])
 api_router.include_router(system.router, prefix="/system", tags=["system"])

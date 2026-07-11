@@ -270,3 +270,18 @@ export const recommendationsApi = {
     return res.data.data;
   },
 };
+
+export const assistantApi = {
+  chat: async (message: string, sessionId?: string) => {
+    const res = await apiClient.post('/api/v1/assistant/chat', { message, session_id: sessionId });
+    return res.data.data;
+  },
+  getSuggestions: async () => {
+    const res = await apiClient.get('/api/v1/assistant/suggestions');
+    return res.data.data;
+  },
+  getSentiment: async () => {
+    const res = await apiClient.get('/api/v1/assistant/sentiment');
+    return res.data.data;
+  },
+};

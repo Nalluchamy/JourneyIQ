@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Menu, X, Rocket, Heart, ShoppingCart, User, LogOut } from 'lucide-react';
 import { cartApi, wishlistApi, eventsApi, authApi } from '../services/api';
+import { ChatbotWidget } from '../components/ChatbotWidget';
 
 export const MainLayout: React.FC = () => {
   const { t } = useTranslation();
@@ -244,6 +245,9 @@ export const MainLayout: React.FC = () => {
         <Outlet />
       </main>
 
+      {/* Floating AI Shopping Assistant chatbot widget */}
+      <ChatbotWidget />
+
       {/* Footer */}
       <footer className="border-t border-border bg-black/40 py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -252,7 +256,7 @@ export const MainLayout: React.FC = () => {
               <span>{t('footer.copyright', { year: new Date().getFullYear() })}</span>
             </div>
 
-            <div className="text-xs text-muted-foreground">JourneyIQ v1.0.0 | AI-Powered Customer Journey Intelligence</div>
+            <div className="text-xs text-muted-foreground">JourneyIQ v1.1 | AI-Powered Customer Journey Intelligence</div>
           </div>
         </div>
       </footer>
