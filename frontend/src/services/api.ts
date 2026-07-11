@@ -285,3 +285,45 @@ export const assistantApi = {
     return res.data.data;
   },
 };
+
+export const generativeApi = {
+  generateMarketing: async (segment: string, campaignType: string, productContext?: string) => {
+    const res = await apiClient.post('/api/v1/generative/marketing', { segment, campaign_type: campaignType, product_context: productContext });
+    return res.data.data;
+  },
+  generateLayout: async (segment?: string) => {
+    const res = await apiClient.post('/api/v1/generative/layout', { segment });
+    return res.data.data;
+  },
+  simulateJourney: async (segment: string) => {
+    const res = await apiClient.post('/api/v1/generative/journey', { segment });
+    return res.data.data;
+  },
+  generateImagePrompt: async (style: string, productContext: string, colors: string[]) => {
+    const res = await apiClient.post('/api/v1/generative/image-prompt', { style, product_context: productContext, colors });
+    return res.data.data;
+  },
+};
+
+export const agentApi = {
+  getStatus: async () => {
+    const res = await apiClient.get('/api/v1/agent/status');
+    return res.data.data;
+  },
+  getHistory: async () => {
+    const res = await apiClient.get('/api/v1/agent/history');
+    return res.data.data;
+  },
+  getPending: async () => {
+    const res = await apiClient.get('/api/v1/agent/pending');
+    return res.data.data;
+  },
+  approveAction: async (actionId: string) => {
+    const res = await apiClient.post(`/api/v1/agent/actions/${actionId}/approve`);
+    return res.data.data;
+  },
+  rejectAction: async (actionId: string) => {
+    const res = await apiClient.post(`/api/v1/agent/actions/${actionId}/reject`);
+    return res.data.data;
+  },
+};

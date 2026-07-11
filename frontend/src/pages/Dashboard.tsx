@@ -212,6 +212,30 @@ export const Dashboard: React.FC = () => {
   // Sales tab detailed table view toggle
   const [showDetailedSales, setShowDetailedSales] = useState(false);
 
+  // AI Campaigns Generator States
+  const [campSegment, setCampSegment] = useState('VIP Customers');
+  const [campType, setCampType] = useState('email');
+  const [campContext, setCampContext] = useState('');
+  const [generatedCampaign, setGeneratedCampaign] = useState<any>(null);
+  const [generatingCamp, setGeneratingCamp] = useState(false);
+
+  const [layoutSegment, setLayoutSegment] = useState('VIP Customers');
+  const [generatedLayout, setGeneratedLayout] = useState<any>(null);
+  const [generatingLayout, setGeneratingLayout] = useState(false);
+
+  const [journeySegment, setJourneySegment] = useState('VIP Customers');
+  const [generatedJourney, setGeneratedJourney] = useState<any>(null);
+  const [generatingJourney, setGeneratingJourney] = useState(false);
+
+  const [imgStyle, setImgStyle] = useState('cyberpunk');
+  const [imgProduct, setImgProduct] = useState('Nike Air Max');
+  const [imgColors, setImgColors] = useState('purple, cyan');
+  const [generatedImagePrompt, setGeneratedImagePrompt] = useState<any>(null);
+  const [generatingImage, setGeneratingImage] = useState(false);
+
+  // Agent approvals loading states
+  const [processingAction, setProcessingAction] = useState<string | null>(null);
+
   // Tour/Walkthrough States
   const [showTour, setShowTour] = useState(false);
   const [tourStep, setTourStep] = useState(0);
@@ -260,6 +284,85 @@ export const Dashboard: React.FC = () => {
     }
   ];
 
+  const handleGenerateMarketing = async () => {
+    try {
+      setGeneratingCamp(true);
+      const data = await generativeApi.generateMarketing(campSegment, campType, campContext || undefined);
+      setGeneratedCampaign(data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate campaign.');
+    } finally {
+      setGeneratingCamp(false);
+    }
+  };
+
+  const handleGenerateLayout = async () => {
+    try {
+      setGeneratingLayout(true);
+      const data = await generativeApi.generateLayout(layoutSegment);
+      setGeneratedLayout(data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate layout.');
+    } finally {
+      setGeneratingLayout(false);
+    }
+  };
+
+  const handleSimulateJourney = async () => {
+    try {
+      setGeneratingJourney(true);
+      const data = await generativeApi.simulateJourney(journeySegment);
+      setGeneratedJourney(data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to simulate journey.');
+    } finally {
+      setGeneratingJourney(false);
+    }
+  };
+
+  const handleGenerateImagePrompt = async () => {
+    try {
+      setGeneratingImage(true);
+      const colorsArr = imgColors.split(',').map(c => c.trim()).filter(Boolean);
+      const data = await generativeApi.generateImagePrompt(imgStyle, imgProduct, colorsArr);
+      setGeneratedImagePrompt(data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate image prompt.');
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
+  const handleApproveAction = async (actionId: string) => {
+    try {
+      setProcessingAction(actionId);
+      await agentApi.approveAction(actionId);
+      await refetchAgentStatus();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to approve action.');
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
+  const handleRejectAction = async (actionId: string) => {
+    try {
+      setProcessingAction(actionId);
+      await agentApi.rejectAction(actionId);
+      await refetchAgentStatus();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to reject action.');
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     setSettingsSaved(true);
@@ -271,6 +374,8 @@ export const Dashboard: React.FC = () => {
     { key: 'overview', label: 'Overview', icon: <TrendingUp className="h-4 w-4" /> },
     { key: 'customers', label: 'Customers', icon: <Users className="h-4 w-4" /> },
     { key: 'sales', label: 'Sales Summary', icon: <Percent className="h-4 w-4" /> },
+    { key: 'campaigns', label: 'AI Campaigns', icon: <Flame className="h-4 w-4" /> },
+    { key: 'agent', label: 'Agentic AI', icon: <Activity className="h-4 w-4" /> },
     { key: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
     { key: 'insights', label: 'AI Insights', icon: <Sparkles className="h-4 w-4" /> },
     { key: 'models', label: 'Model Performance', icon: <Activity className="h-4 w-4" /> },
@@ -1106,6 +1211,434 @@ export const Dashboard: React.FC = () => {
                             <td className="py-3 text-white font-semibold">14 minutes</td>
                             <td className="py-3 text-right text-slate-400 font-bold">-</td>
                           </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* AI Campaigns Tab */}
+              {activeTab === 'campaigns' && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="rounded-lg border border-slate-800 bg-[#111827] p-6 space-y-1">
+                    <h3 className="text-xl font-bold text-white">Generative AI Marketing Campaigns</h3>
+                    <p className="text-xs text-slate-450 mt-0.5">Generate segment-aware email/SMS campaign copies, A/B test layout variables, and simulate storefront customer journeys.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {/* Marketing Copy Generator */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <h4 className="font-bold text-white text-sm">Campaign Copy Generator</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Target Segment</label>
+                          <select 
+                            value={campSegment}
+                            onChange={(e) => setCampSegment(e.target.value)}
+                            className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white focus:ring-0"
+                          >
+                            <option value="VIP Customers">VIP Customers (High Spenders)</option>
+                            <option value="At Risk Customers">At-Risk Customers (Slipping Cohorts)</option>
+                            <option value="New Customers">New Customers (Welcome Cohorts)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Channel Type</label>
+                          <select 
+                            value={campType}
+                            onChange={(e) => setCampType(e.target.value)}
+                            className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white focus:ring-0"
+                          >
+                            <option value="email">Email Campaign Copy</option>
+                            <option value="sms">SMS Text Copy</option>
+                            <option value="push">App Push Notification</option>
+                            <option value="coupon">Coupon Discount Code Message</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Featured Products Context</label>
+                          <input 
+                            type="text"
+                            placeholder="e.g. Nike Running Shoes or Summer Collections"
+                            value={campContext}
+                            onChange={(e) => setCampContext(e.target.value)}
+                            className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:ring-0"
+                          />
+                        </div>
+                        <button
+                          onClick={handleGenerateMarketing}
+                          disabled={generatingCamp}
+                          className="w-full rounded-lg bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                        >
+                          {generatingCamp ? 'Generating Copy...' : 'Generate Marketing Campaign'}
+                        </button>
+                      </div>
+
+                      {generatedCampaign && (
+                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 space-y-3 mt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-2xs font-extrabold text-indigo-400 uppercase tracking-wider">Generated Copy ({generatedCampaign.source})</span>
+                            <button
+                              onClick={() => {
+                                const element = document.createElement("a");
+                                const file = new Blob([`# ${generatedCampaign.subject}\n\n${generatedCampaign.body}`], {type: 'text/plain'});
+                                element.href = URL.createObjectURL(file);
+                                element.download = `campaign_${campSegment.replace(/\s+/g, '_')}.md`;
+                                document.body.appendChild(element);
+                                element.click();
+                              }}
+                              className="text-3xs font-black uppercase text-indigo-400 hover:text-indigo-300"
+                            >
+                              Download Markdown
+                            </button>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-xs text-white"><span className="font-bold text-slate-400">Subject:</span> {generatedCampaign.subject}</div>
+                            <div className="text-xs text-slate-300 leading-relaxed font-medium whitespace-pre-wrap"><span className="font-bold text-slate-400 block mb-1">Body:</span> {generatedCampaign.body}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Layout Recommendations */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <h4 className="font-bold text-white text-sm">A/B Layout Theme Suggestion</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Store Segment Variation</label>
+                          <select 
+                            value={layoutSegment}
+                            onChange={(e) => setLayoutSegment(e.target.value)}
+                            className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white focus:ring-0"
+                          >
+                            <option value="VIP Customers">VIP Customers (Luxury Amber)</option>
+                            <option value="At Risk Customers">At-Risk Customers (Indigo/Cyan Conversions)</option>
+                            <option value="General Visitors">General Visitors (Standard Glassmorphic)</option>
+                          </select>
+                        </div>
+                        <button
+                          onClick={handleGenerateLayout}
+                          disabled={generatingLayout}
+                          className="w-full rounded-lg bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                        >
+                          {generatingLayout ? 'Generating Theme...' : 'Recommend Theme Layout'}
+                        </button>
+                      </div>
+
+                      {generatedLayout && (
+                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 space-y-3 mt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-2xs font-extrabold text-emerald-450 uppercase tracking-wider">A/B Theme Tokens</span>
+                            <button
+                              onClick={() => {
+                                const element = document.createElement("a");
+                                const file = new Blob([JSON.stringify(generatedLayout, null, 2)], {type: 'application/json'});
+                                element.href = URL.createObjectURL(file);
+                                element.download = `layout_theme.json`;
+                                document.body.appendChild(element);
+                                element.click();
+                              }}
+                              className="text-3xs font-black uppercase text-emerald-400 hover:text-emerald-300"
+                            >
+                              Export JSON
+                            </button>
+                          </div>
+                          <pre className="text-3xs text-slate-300 bg-slate-950 p-3 rounded overflow-x-auto font-mono">
+                            {JSON.stringify(generatedLayout, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {/* Customer Journey Simulator */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <h4 className="font-bold text-white text-sm">Customer Journey Path Simulator</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Target Customer Profile</label>
+                          <select 
+                            value={journeySegment}
+                            onChange={(e) => setJourneySegment(e.target.value)}
+                            className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white focus:ring-0"
+                          >
+                            <option value="VIP Customers">VIP Customers</option>
+                            <option value="At Risk Customers">At-Risk Customers</option>
+                            <option value="New Customers">New Customers</option>
+                          </select>
+                        </div>
+                        <button
+                          onClick={handleSimulateJourney}
+                          disabled={generatingJourney}
+                          className="w-full rounded-lg bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                        >
+                          {generatingJourney ? 'Simulating Path...' : 'Simulate Customer Journey'}
+                        </button>
+                      </div>
+
+                      {generatedJourney && (
+                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 space-y-4 mt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-2xs font-extrabold text-cyan-400 uppercase tracking-wider">Journey Simulation Outcomes</span>
+                            <span className="text-xs font-black text-emerald-450">+{generatedJourney.conversion_lift_pct}% Lift</span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-3xs font-extrabold text-slate-500 uppercase mb-1">Baseline Flow ({generatedJourney.current_journey.conversion_probability}%)</div>
+                              <div className="space-y-1">
+                                {generatedJourney.current_journey.steps.map((step: string, i: number) => (
+                                  <div key={i} className="text-3xs text-slate-400 bg-slate-950 px-2 py-1 rounded truncate">
+                                    {i+1}. {step}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-3xs font-extrabold text-slate-500 uppercase mb-1">AI Optimized Flow ({generatedJourney.optimized_journey.conversion_probability}%)</div>
+                              <div className="space-y-1">
+                                {generatedJourney.optimized_journey.steps.map((step: string, i: number) => (
+                                  <div key={i} className="text-3xs text-slate-200 bg-slate-950 px-2 py-1 rounded truncate border border-indigo-950">
+                                    {i+1}. {step}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 pt-2 border-t border-slate-800">
+                            <div className="text-3xs font-extrabold text-slate-450 uppercase">Suggested Optimizations</div>
+                            <ul className="space-y-1 text-3xs text-slate-300 font-medium">
+                              {generatedJourney.suggested_improvements.map((imp: string, i: number) => (
+                                <li key={i} className="flex gap-1.5 items-start">
+                                  <span className="text-emerald-400">•</span>
+                                  <span>{imp}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Image Prompt Generator */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <h4 className="font-bold text-white text-sm">Image Asset Prompt Generator</h4>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Visual Style</label>
+                            <select 
+                              value={imgStyle}
+                              onChange={(e) => setImgStyle(e.target.value)}
+                              className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white focus:ring-0"
+                            >
+                              <option value="cyberpunk">Cyberpunk Neon</option>
+                              <option value="minimalist">Minimalist Studio</option>
+                              <option value="vibrant">Vibrant Splash</option>
+                              <option value="classic">Classic Commercial</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Theme Colors</label>
+                            <input 
+                              type="text"
+                              placeholder="e.g. purple, cyan"
+                              value={imgColors}
+                              onChange={(e) => setImgColors(e.target.value)}
+                              className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:ring-0"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-2xs font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Product Description</label>
+                          <input 
+                            type="text"
+                            placeholder="e.g. Premium Running Shoes"
+                            value={imgProduct}
+                            onChange={(e) => setImgProduct(e.target.value)}
+                            className="w-full rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:ring-0"
+                          />
+                        </div>
+                        <button
+                          onClick={handleGenerateImagePrompt}
+                          disabled={generatingImage}
+                          className="w-full rounded-lg bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                        >
+                          {generatingImage ? 'Generating Prompt...' : 'Generate Banner Prompt'}
+                        </button>
+                      </div>
+
+                      {generatedImagePrompt && (
+                        <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4 space-y-2 mt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-2xs font-extrabold text-amber-500 uppercase tracking-wider">Asset Prompt Copy</span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(generatedImagePrompt.generated_prompt);
+                                alert('Prompt copied to clipboard!');
+                              }}
+                              className="text-3xs font-black uppercase text-amber-500 hover:text-amber-400"
+                            >
+                              Copy Prompt
+                            </button>
+                          </div>
+                          <p className="text-xs text-slate-200 bg-slate-950 p-3 rounded border border-slate-800 font-mono leading-relaxed select-all">
+                            {generatedImagePrompt.generated_prompt}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Agentic AI Tab */}
+              {activeTab === 'agent' && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="rounded-lg border border-slate-800 bg-[#111827] p-6 space-y-1">
+                    <h3 className="text-xl font-bold text-white">Autonomous Agentic AI Orchestrator</h3>
+                    <p className="text-xs text-slate-450 mt-0.5">Real-time perception findings, plans evaluation, and human-in-the-loop safety constraints approvals.</p>
+                  </div>
+
+                  {/* Visual Agentic Flow Stages */}
+                  <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                    <h4 className="font-bold text-white text-sm">Visual Agent Execution Loop</h4>
+                    <div className="grid grid-cols-6 gap-2 text-center text-[10px] font-extrabold uppercase select-none">
+                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'perceiving' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                        1. Observe
+                      </div>
+                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'reasoning' ? 'bg-amber-500/10 border-amber-500 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                        2. Analyze
+                      </div>
+                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'planning' ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                        3. Plan
+                      </div>
+                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'awaiting_approval' ? 'bg-rose-500/10 border-rose-500 text-rose-450 animate-pulse' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                        4. Approval
+                      </div>
+                      <div className="p-3 rounded-lg border bg-slate-900 border-slate-800 text-slate-500">
+                        5. Execute
+                      </div>
+                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'idle' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                        6. Learn
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    {/* Pending Approvals Safety Queue */}
+                    <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <h4 className="font-bold text-white text-sm">Safety Approvals Buffer Queue</h4>
+                      <div className="space-y-4 divide-y divide-slate-850">
+                        {agentStatus?.pending_approvals?.length === 0 ? (
+                          <div className="text-xs text-slate-400 py-6 text-center">No pending sensitive actions awaiting approval.</div>
+                        ) : (
+                          agentStatus?.pending_approvals?.map((act: any) => (
+                            <div key={act.id} className="pt-4 first:pt-0 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h5 className="text-xs font-bold text-white">{act.title}</h5>
+                                  <span className="text-[10px] text-indigo-400 font-semibold">{act.target_segment}</span>
+                                </div>
+                                <span className="bg-rose-500/10 border border-rose-500/20 text-rose-450 px-2 py-0.5 text-[9px] font-black uppercase rounded">
+                                  Requires Approval
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-350 leading-relaxed font-medium">{act.description}</p>
+                              <div className="text-xs text-emerald-450 font-bold"><span className="text-slate-400">Impact Lift:</span> {act.impact}</div>
+                              
+                              <div className="flex gap-2 justify-end pt-1">
+                                <button
+                                  onClick={() => handleRejectAction(act.id)}
+                                  disabled={processingAction === act.id}
+                                  className="rounded bg-slate-850 px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+                                >
+                                  Reject Plan
+                                </button>
+                                <button
+                                  onClick={() => handleApproveAction(act.id)}
+                                  disabled={processingAction === act.id}
+                                  className="rounded bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+                                >
+                                  {processingAction === act.id ? 'Approving...' : 'Approve & Execute'}
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Learning Statistics */}
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                      <h4 className="font-bold text-white text-sm">Orchestrator Learning Stats</h4>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="rounded border border-slate-850 bg-slate-900/60 p-3 text-center">
+                            <span className="text-3xs font-extrabold text-slate-500 uppercase block mb-1">Conversion Lift</span>
+                            <div className="text-lg font-bold text-emerald-400">+{agentStatus?.learning_statistics?.conversion_lift_pct}%</div>
+                          </div>
+                          <div className="rounded border border-slate-850 bg-slate-900/60 p-3 text-center">
+                            <span className="text-3xs font-extrabold text-slate-500 uppercase block mb-1">Revenue Lift</span>
+                            <div className="text-lg font-bold text-white">${agentStatus?.learning_statistics?.recovered_revenue}</div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <span className="text-3xs font-extrabold text-slate-500 uppercase tracking-wider block">Learning Outcomes</span>
+                          <p className="text-xs text-slate-300 leading-relaxed font-medium whitespace-normal bg-slate-950 p-3 rounded">
+                            {agentStatus?.learning_statistics?.learnings_summary}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1.5 pt-2 border-t border-slate-850">
+                          <span className="text-3xs font-extrabold text-slate-500 uppercase tracking-wider block">KPI Deltas</span>
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-slate-400">Bounce rate decrease</span>
+                            <span className="text-emerald-450 font-bold">{agentStatus?.learning_statistics?.kpi_deltas?.bounce_rate_reduction}</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-slate-400">Average order lift</span>
+                            <span className="text-emerald-450 font-bold">{agentStatus?.learning_statistics?.kpi_deltas?.average_order_increase}</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-slate-400">Customer churn decrease</span>
+                            <span className="text-emerald-450 font-bold">{agentStatus?.learning_statistics?.kpi_deltas?.customer_churn_decrease}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Decision logs timeline */}
+                  <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                    <h4 className="font-bold text-white text-sm">Agent Decision & Action Logs</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-800 text-slate-450 uppercase font-black tracking-wider">
+                            <th className="pb-2">Action Description</th>
+                            <th className="pb-2">Timestamp</th>
+                            <th className="pb-2">Status</th>
+                            <th className="pb-2 text-right">Evaluated Impact</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {agentStatus?.execution_history?.map((hist: any, i: number) => (
+                            <tr key={i} className="border-b border-slate-850 last:border-0 hover:bg-slate-850/30">
+                              <td className="py-2.5 font-bold text-white">{hist.action}</td>
+                              <td className="py-2.5 text-slate-400">{hist.timestamp}</td>
+                              <td className="py-2.5">
+                                <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[9px] font-bold">
+                                  {hist.status}
+                                </span>
+                              </td>
+                              <td className="py-2.5 text-right text-emerald-450 font-bold">{hist.impact}</td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>

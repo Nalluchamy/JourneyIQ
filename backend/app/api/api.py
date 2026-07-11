@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.endpoints import (
     addresses,
+    agent,
     assistant,
     auth,
     cart,
@@ -10,6 +11,7 @@ from app.api.endpoints import (
     coupons,
     dashboard,
     events,
+    generative,
     health,
     orders,
     payments,
@@ -47,4 +49,6 @@ api_router.include_router(payments.router, prefix="/payments", tags=["payments"]
 api_router.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"], dependencies=[Depends(limiter_recommendations)])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"], dependencies=[Depends(limiter_dashboard)])
 api_router.include_router(assistant.router, prefix="/assistant", tags=["assistant"])
+api_router.include_router(generative.router, prefix="/generative", tags=["generative"])
+api_router.include_router(agent.router, prefix="/agent", tags=["agent"])
 api_router.include_router(system.router, prefix="/system", tags=["system"])
