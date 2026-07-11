@@ -15,6 +15,7 @@ from app.api.endpoints import (
     checkout,
     coupons,
     payments,
+    recommendations,
 )
 
 api_router = APIRouter()
@@ -34,3 +35,4 @@ api_router.include_router(addresses.router, prefix="/addresses", tags=["addresse
 api_router.include_router(checkout.router, tags=["checkout"])
 api_router.include_router(coupons.router, prefix="/coupons", tags=["coupons"])
 api_router.include_router(payments.router, prefix="/payments", tags=["payments"])
+api_router.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"])

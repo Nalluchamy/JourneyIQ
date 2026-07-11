@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, ShoppingCart, Star, MessageSquare, ArrowLeft, Eye } from 'lucide-react';
-import { productsApi, wishlistApi, cartApi, reviewsApi, eventsApi, getOrCreateSessionId } from '../services/api';
+import { productsApi, wishlistApi, cartApi, reviewsApi, eventsApi, getOrCreateSessionId, recommendationsApi } from '../services/api';
 
 export const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,6 +58,13 @@ export const ProductDetails: React.FC = () => {
 
   // Filter out current product from related list
   const relatedProducts = relatedProductsData?.items.filter((p: any) => p.id !== productId) || [];
+
+  // Fetch similar products
+  const { data: similarProducts } = useQuery({
+    queryKey: ['similarProducts', productId],
+    queryFn: () => recommendationsApi.getSimilar(productId),
+    enabled: !!productId,
+  });
 
   // Check wishlist status
   const { data: wishlistItems } = useQuery({
@@ -319,10 +326,10 @@ export const ProductDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Related Products Section */}
+      {/* Customers also viewed Section */}
       {relatedProducts.length > 0 && (
         <div className="mt-16 border-t border-border pt-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Related Products</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Customers also viewed</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {relatedProducts.map((p: any) => (
               <Link
@@ -330,8 +337,40 @@ export const ProductDetails: React.FC = () => {
                 to={`/products/${p.id}`}
                 className="group rounded-xl border border-border bg-card p-3 transition-all hover:border-primary/50"
               >
-                <div className="h-32 w-full rounded bg-muted flex items-center justify-center text-xs text-muted-foreground mb-2">
-                  <span>{p.brand}</span>
+                <div className="h-32 w-full rounded bg-muted overflow-hidden flex items-center justify-center text-xs text-muted-foreground mb-2">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{p.brand}</span>
+                  )}
+                </div>
+                <h4 className="font-bold text-white text-xs leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                  {p.name}
+                </h4>
+                <span className="font-black text-white text-xs">${Number(p.price).toFixed(2)}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Similar Products Section */}
+      {similarProducts && similarProducts.length > 0 && (
+        <div className="mt-16 border-t border-border pt-12">
+          <h2 className="text-2xl font-bold text-white mb-6">Similar Products</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+            {similarProducts.map((p: any) => (
+              <Link
+                key={p.id}
+                to={`/products/${p.id}`}
+                className="group rounded-xl border border-border bg-card p-3 transition-all hover:border-primary/50"
+              >
+                <div className="h-32 w-full rounded bg-muted overflow-hidden flex items-center justify-center text-xs text-muted-foreground mb-2">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{p.brand}</span>
+                  )}
                 </div>
                 <h4 className="font-bold text-white text-xs leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                   {p.name}

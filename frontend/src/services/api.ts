@@ -251,3 +251,22 @@ export const paymentsApi = {
     return res.data;
   },
 };
+
+export const recommendationsApi = {
+  getPersonalized: async () => {
+    const res = await apiClient.get('/api/v1/recommendations');
+    return res.data.data;
+  },
+  getTrending: async () => {
+    const res = await apiClient.get('/api/v1/recommendations/trending');
+    return res.data.data;
+  },
+  getPopular: async () => {
+    const res = await apiClient.get('/api/v1/recommendations/popular');
+    return res.data.data;
+  },
+  getSimilar: async (productId: number) => {
+    const res = await apiClient.get(`/api/v1/products/${productId}/similar`);
+    return res.data.data;
+  },
+};

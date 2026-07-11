@@ -17,6 +17,7 @@ from app.core.logging_config import logger, setup_logging
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Startup tasks
+    from app.services.ml.scheduler import start_scheduler, stop_scheduler
     setup_logging()
     logger.info(
         "Starting JourneyIQ Backend Service",
@@ -24,9 +25,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         version=settings.VERSION,
         environment=settings.ENVIRONMENT,
     )
+    start_scheduler()
     yield
     # Shutdown tasks
     logger.info("Stopping JourneyIQ Backend Service")
+    stop_scheduler()
 
 
 app = FastAPI(

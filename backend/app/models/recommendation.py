@@ -1,7 +1,7 @@
 import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Float, ForeignKey, func
+from sqlalchemy import DateTime, Float, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import BaseModel
@@ -21,6 +21,7 @@ class Recommendation(BaseModel):
         ForeignKey("product.id", ondelete="CASCADE"), nullable=False, index=True
     )
     score: Mapped[float] = mapped_column(Float, nullable=False)
+    explanation: Mapped[str | None] = mapped_column(String(255), nullable=True)
     generated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

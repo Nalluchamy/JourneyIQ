@@ -18,8 +18,10 @@ from app.schemas.cart import CartItemRead, CartItemCreate, CartItemUpdate
 from app.schemas.review import ReviewRead, ReviewCreate, ReviewUpdate
 from app.schemas.shipping_address import ShippingAddressCreate, ShippingAddressUpdate, ShippingAddressRead
 from app.schemas.coupon import CouponRead, CouponApplyRequest, CouponApplyResponse
+from app.schemas.recommendation import RecommendationRead
 
 __all__ = [
+    "RecommendationRead",
     "PaginatedResponse",
     "CategoryRead",
     "ProductRead",

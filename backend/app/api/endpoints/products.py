@@ -9,6 +9,7 @@ from app.db.session import get_db
 from app.models.product import Product
 from app.schemas.common import PaginatedResponse
 from app.schemas.product import ProductRead
+from app.schemas.response import APIResponse
 from app.utils.pagination import paginate
 
 router = APIRouter()
@@ -109,3 +110,45 @@ async def get_product(
             detail="Product not found.",
         )
     return product
+
+
+@router.get(
+    "/{product_id}/similar",
+    response_model=APIResponse[list[ProductRead]],
+    summary="Get similar products",
+)
+async def get_similar_products(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """Retrieve similar products using content-based category, brand, and price comparison."""
+    # Find the target product
+    target_result = await db.execute(
+        select(Product).where(Product.id == product_id, Product.is_deleted == False)
+    )
+    target_product = target_result.scalar_one_or_none()
+    if not target_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found.",
+        )
+
+    # Fetch all candidate products
+    candidates_result = await db.execute(
+        select(Product).where(Product.id != product_id, Product.is_deleted == False, Product.is_active == True)
+    )
+    candidates = candidates_result.scalars().all()
+
+    # Calculate content similarities using SimilarityEngine
+    from app.services.ml.similarity_engine import SimilarityEngine
+    engine = SimilarityEngine(db)
+    similar_scores = await engine.compute_content_similarity(target_product, candidates)
+
+    # Pick top 5 similar products
+    top_similar_products = [prod for prod, score in similar_scores[:5]]
+
+    return APIResponse(
+        success=True,
+        message="Similar products retrieved successfully.",
+        data=top_similar_products
+    )
