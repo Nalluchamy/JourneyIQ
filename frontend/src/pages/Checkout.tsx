@@ -293,8 +293,8 @@ export const Checkout: React.FC = () => {
                       <p className="text-xs text-muted-foreground mt-1 font-medium">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-white">${(item.product.price * item.quantity).toFixed(2)}</span>
-                      <p className="text-xs text-muted-foreground">${item.product.price.toFixed(2)} each</p>
+                      <span className="font-bold text-white">₹{(item.product.price * item.quantity).toFixed(2)}</span>
+                      <p className="text-xs text-muted-foreground">₹{item.product.price.toFixed(2)} each</p>
                     </div>
                   </div>
                 ))}
@@ -335,7 +335,7 @@ export const Checkout: React.FC = () => {
               <div className="space-y-3 text-sm border-b border-white/10 pb-4">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-white">${summary.subtotal.toFixed(2)}</span>
+                  <span className="font-semibold text-white">₹{summary.subtotal.toFixed(2)}</span>
                 </div>
                 {summary.discount > 0 && (
                   <div className="flex justify-between text-emerald-450">
@@ -345,18 +345,18 @@ export const Checkout: React.FC = () => {
                 )}
                 <div className="flex justify-between text-muted-foreground">
                   <span>Tax (8%)</span>
-                  <span className="font-semibold text-white">${summary.tax.toFixed(2)}</span>
+                  <span className="font-semibold text-white">₹{summary.tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
                   <span className="font-semibold text-white">
-                    {summary.shipping === 0 ? 'Free' : `$${summary.shipping.toFixed(2)}`}
+                    {summary.shipping === 0 ? 'Free' : `₹${summary.shipping.toFixed(2)}`}
                   </span>
                 </div>
               </div>
               <div className="flex justify-between items-center pt-2 mb-6">
                 <span className="font-bold text-white">Grand Total</span>
-                <span className="text-2xl font-black text-cyan-400">${summary.grand_total.toFixed(2)}</span>
+                <span className="text-2xl font-black text-cyan-400">₹{summary.grand_total.toFixed(2)}</span>
               </div>
 
               <button

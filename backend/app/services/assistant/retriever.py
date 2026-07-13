@@ -58,11 +58,11 @@ class ProductRetriever:
 
         # 3. Handle specific intent queries
         if intent == "trending_products":
-            # Sort by total orders or rating
-            stmt = stmt.order_by(Product.rating.desc(), Product.price.desc())
+            # Sort by total orders or popularity
+            stmt = stmt.order_by(Product.popularity_score.desc(), Product.price.desc())
         elif intent == "wishlist_based" and user_id is not None:
-            # We will return the user's recommendations or high-rating items as a fallback
-            stmt = stmt.order_by(Product.rating.desc())
+            # We will return the user's recommendations or high-popularity items as a fallback
+            stmt = stmt.order_by(Product.popularity_score.desc())
         elif intent == "recommend_for_me" and user_id is not None:
             # Query Recommendations table first
             rec_stmt = (
@@ -78,7 +78,7 @@ class ProductRetriever:
                 return [self._serialize_product(p, "Personalized Hybrid Recommender") for p in recs]
         
         # Default fallback string matching if no category was explicitly filtered
-        if not matched_cat_ids:
+        if not matched_cat_ids and intent not in ["trending_products", "recommend_for_me", "wishlist_based"]:
             # Match keywords
             search_terms = [t for t in cleaned_query.split() if len(t) > 2]
             if search_terms:
@@ -97,12 +97,14 @@ class ProductRetriever:
         return [self._serialize_product(p, "Database Query Search") for p in products_list]
 
     def _serialize_product(self, p: Product, engine: str) -> dict[str, Any]:
+        # Estimate rating from sentiment score to avoid missing attribute
+        rating = round(3.0 + 2.0 * p.sentiment_score, 1) if p.sentiment_score else 4.5
         return {
             "id": p.id,
             "name": p.name,
             "brand": p.brand,
             "price": float(p.price),
-            "rating": float(p.rating) if p.rating else 5.0,
+            "rating": rating,
             "image_url": p.image_url,
             "recommendation_engine": engine
         }

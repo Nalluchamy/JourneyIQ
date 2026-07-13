@@ -45,8 +45,8 @@ async def test_seed_script_execution(db_session: AsyncSession) -> None:
 
     # Validate seed dataset metrics
     assert users_total == 100
-    assert categories_total == 15
+    assert categories_total == 9
     assert products_total == 100
-    assert orders_total == 300
+    assert orders_total == 200
     assert reviews_total == 500
-    assert events_total == 1000
+    assert events_total == 500

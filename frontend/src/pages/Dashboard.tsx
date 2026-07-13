@@ -18,6 +18,7 @@ import {
   Sparkles,
   Inbox,
   Settings,
+  Send,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -33,8 +34,7 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { apiClient, assistantApi } from '../services/api';
-
+import { apiClient, assistantApi, generativeApi, agentApi } from '../services/api';
 export const Dashboard: React.FC = () => {
   const { tab = 'overview' } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
@@ -147,6 +147,15 @@ export const Dashboard: React.FC = () => {
     },
   });
 
+  const { data: agentStatus, refetch: refetchAgentStatus } = useQuery({
+    queryKey: ['dashboard_agent_status'],
+    queryFn: async () => {
+      return await agentApi.getStatus();
+    },
+    enabled: activeTab === 'agent',
+    refetchInterval: activeTab === 'agent' ? 5000 : false
+  });
+
   // Actions
   const refreshMutation = useMutation({
     mutationFn: async () => {
@@ -161,6 +170,7 @@ export const Dashboard: React.FC = () => {
       refetchInsights();
       refetchComparison();
       refetchSentiment();
+      refetchAgentStatus();
       setLastUpdated(new Date());
       setTimeAgoText('Updated just now');
     },
@@ -235,6 +245,24 @@ export const Dashboard: React.FC = () => {
 
   // Agent approvals loading states
   const [processingAction, setProcessingAction] = useState<string | null>(null);
+  const [visualAgentState, setVisualAgentState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab === 'agent' && !processingAction) {
+      let isSubscribed = true;
+      setVisualAgentState('perceiving');
+      setTimeout(() => {
+        if (isSubscribed) setVisualAgentState('reasoning');
+        setTimeout(() => {
+          if (isSubscribed) setVisualAgentState('planning');
+          setTimeout(() => {
+            if (isSubscribed) setVisualAgentState(null);
+          }, 600);
+        }, 600);
+      }, 600);
+      return () => { isSubscribed = false; };
+    }
+  }, [activeTab, agentStatus?.pending_approvals?.length, processingAction]);
 
   // AI Co-pilot Analyst Chat States
   const [copilotInput, setCopilotInput] = useState('');
@@ -365,6 +393,7 @@ export const Dashboard: React.FC = () => {
   const handleApproveAction = async (actionId: string) => {
     try {
       setProcessingAction(actionId);
+      setVisualAgentState('executing');
       await agentApi.approveAction(actionId);
       await refetchAgentStatus();
     } catch (err) {
@@ -494,8 +523,8 @@ export const Dashboard: React.FC = () => {
                       </div>
                       <div className="text-3xl font-bold text-white">
                         {overview?.summary?.total_revenue !== undefined
-                          ? `$${overview.summary.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                          : '$0.00'}
+                          ? `₹${overview.summary.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : '₹0.00'}
                       </div>
                       <p className="text-xs text-slate-350 leading-relaxed font-medium">
                         {overview?.summary?.today_revenue_delta !== undefined && overview.summary.today_revenue_delta !== 0
@@ -593,7 +622,7 @@ export const Dashboard: React.FC = () => {
                           <AreaChart data={overview?.timeline || []}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                             <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} />
-                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `$${v}`} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `₹${v}`} />
                             <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#fff' }} />
                             <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} />
                           </AreaChart>
@@ -667,7 +696,7 @@ export const Dashboard: React.FC = () => {
                                 <td className="py-2.5 font-bold text-white truncate max-w-[150px]">{p.name}</td>
                                 <td className="py-2.5 text-slate-400">{p.brand}</td>
                                 <td className="py-2.5 text-right text-emerald-450 font-bold">{p.sales}</td>
-                                <td className="py-2.5 text-right text-white">${p.price.toFixed(2)}</td>
+                                <td className="py-2.5 text-right text-white">₹{p.price.toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -841,16 +870,16 @@ export const Dashboard: React.FC = () => {
                       Total revenue for this billing period is{' '}
                       <span className="text-indigo-400 font-bold">
                         {orders?.summary?.total_revenue !== undefined
-                          ? `$${orders.summary.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                          : '$0.00'}
+                          ? `₹${orders.summary.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : '₹0.00'}
                       </span>{' '}
                       across{' '}
                       <span className="text-white font-bold">{orders?.summary?.order_count ?? 0}</span>{' '}
                       successfully processed checkout transactions. The average order value is stable at{' '}
                       <span className="text-white font-bold">
                         {orders?.summary?.average_order_value !== undefined
-                          ? `$${orders.summary.average_order_value.toFixed(2)}`
-                          : '$0.00'}
+                          ? `₹${orders.summary.average_order_value.toFixed(2)}`
+                          : '₹0.00'}
                       </span>. Payment processors report a{' '}
                       <span className="text-emerald-400 font-bold">
                         {orders?.summary?.payment_success_rate !== undefined
@@ -896,7 +925,7 @@ export const Dashboard: React.FC = () => {
                                 <td className="py-4 text-slate-300">{o.customer_name}</td>
                                 <td className="py-4 text-slate-400">{new Date(o.created_at).toLocaleDateString()}</td>
                                 <td className="py-4 uppercase text-xs font-bold text-indigo-400">{o.status}</td>
-                                <td className="py-4 text-right font-bold text-white">${o.total.toFixed(2)}</td>
+                                <td className="py-4 text-right font-bold text-white">₹{o.total.toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -950,7 +979,7 @@ export const Dashboard: React.FC = () => {
                           onChange={(e) => setCurrency(e.target.value)}
                           className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
-                          <option value="USD">USD ($)</option>
+                          <option value="USD">USD (₹)</option>
                           <option value="EUR">EUR (€)</option>
                           <option value="GBP">GBP (£)</option>
                         </select>
@@ -1532,22 +1561,22 @@ export const Dashboard: React.FC = () => {
                   <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
                     <h4 className="font-bold text-white text-sm">Visual Agent Execution Loop</h4>
                     <div className="grid grid-cols-6 gap-2 text-center text-[10px] font-extrabold uppercase select-none">
-                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'perceiving' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                      <div className={`p-3 rounded-lg border ${(visualAgentState || agentStatus?.state) === 'perceiving' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
                         1. Observe
                       </div>
-                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'reasoning' ? 'bg-amber-500/10 border-amber-500 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                      <div className={`p-3 rounded-lg border ${(visualAgentState || agentStatus?.state) === 'reasoning' ? 'bg-amber-500/10 border-amber-500 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
                         2. Analyze
                       </div>
-                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'planning' ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                      <div className={`p-3 rounded-lg border ${(visualAgentState || agentStatus?.state) === 'planning' ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
                         3. Plan
                       </div>
-                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'awaiting_approval' ? 'bg-rose-500/10 border-rose-500 text-rose-450 animate-pulse' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                      <div className={`p-3 rounded-lg border ${(visualAgentState || agentStatus?.state) === 'awaiting_approval' ? 'bg-rose-500/10 border-rose-500 text-rose-450 animate-pulse' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
                         4. Approval
                       </div>
-                      <div className="p-3 rounded-lg border bg-slate-900 border-slate-800 text-slate-500">
+                      <div className={`p-3 rounded-lg border ${(visualAgentState || agentStatus?.state) === 'executing' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
                         5. Execute
                       </div>
-                      <div className={`p-3 rounded-lg border ${agentStatus?.state === 'idle' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
+                      <div className={`p-3 rounded-lg border ${(visualAgentState || agentStatus?.state) === 'idle' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
                         6. Learn
                       </div>
                     </div>
@@ -1608,7 +1637,7 @@ export const Dashboard: React.FC = () => {
                           </div>
                           <div className="rounded border border-slate-850 bg-slate-900/60 p-3 text-center">
                             <span className="text-3xs font-extrabold text-slate-500 uppercase block mb-1">Revenue Lift</span>
-                            <div className="text-lg font-bold text-white">${agentStatus?.learning_statistics?.recovered_revenue}</div>
+                            <div className="text-lg font-bold text-white">₹{agentStatus?.learning_statistics?.recovered_revenue}</div>
                           </div>
                         </div>
 

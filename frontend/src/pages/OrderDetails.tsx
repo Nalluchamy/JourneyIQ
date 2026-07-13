@@ -247,8 +247,8 @@ export const OrderDetails: React.FC = () => {
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Qty: {item.quantity}</p>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-slate-900 dark:text-white">${Number(item.subtotal).toFixed(2)}</span>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">${Number(item.unit_price).toFixed(2)} each</p>
+                    <span className="font-bold text-slate-900 dark:text-white">₹{Number(item.subtotal).toFixed(2)}</span>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">₹{Number(item.unit_price).toFixed(2)} each</p>
                   </div>
                 </div>
               ))}
@@ -280,7 +280,7 @@ export const OrderDetails: React.FC = () => {
               <div className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">${Number(order.subtotal).toFixed(2)}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">₹{Number(order.subtotal).toFixed(2)}</span>
                 </div>
                 {Number(order.discount) > 0 && (
                   <div className="flex justify-between text-green-600">
@@ -290,18 +290,18 @@ export const OrderDetails: React.FC = () => {
                 )}
                 <div className="flex justify-between">
                   <span>Tax (8%)</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">${Number(order.tax).toFixed(2)}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">₹{Number(order.tax).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
-                    {order.subtotal > 0 ? '$10.00' : '$0.00'}
+                    {order.subtotal > 0 ? '₹10.00' : '₹0.00'}
                   </span>
                 </div>
               </div>
               <div className="flex justify-between items-center text-slate-900 dark:text-white">
                 <span className="font-bold">Total Cost</span>
-                <span className="text-xl font-black">${Number(order.total).toFixed(2)}</span>
+                <span className="text-xl font-black">₹{Number(order.total).toFixed(2)}</span>
               </div>
             </div>
           </div>

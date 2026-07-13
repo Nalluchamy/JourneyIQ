@@ -169,7 +169,7 @@ export const Cart: React.FC = () => {
                       {item.product.name}
                     </h4>
                   </Link>
-                  <span className="text-xs font-black text-white block mt-1">${Number(item.product.price).toFixed(2)}</span>
+                  <span className="text-xs font-black text-white block mt-1">₹{Number(item.product.price).toFixed(2)}</span>
                   {/* Stock status warning */}
                   {item.product.stock <= 5 && item.product.stock > 0 && (
                     <span className="inline-flex items-center space-x-1 mt-1 text-2xs font-bold text-amber-400">
@@ -225,15 +225,15 @@ export const Cart: React.FC = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal ({items.reduce((s: number, i: any) => s + i.quantity, 0)} items)</span>
-                <span className="font-semibold text-white">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-white">₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Estimated Tax (8%)</span>
-                <span className="font-semibold text-white">${estimatedTax.toFixed(2)}</span>
+                <span className="font-semibold text-white">₹{estimatedTax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-t border-border pt-4 text-base font-extrabold">
                 <span className="text-white">Order Total</span>
-                <span className="text-primary">${grandTotal.toFixed(2)}</span>
+                <span className="text-primary">₹{grandTotal.toFixed(2)}</span>
               </div>
             </div>
 

@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.db.session import get_db
 from app.models.product import Product
@@ -44,7 +45,11 @@ async def get_products(
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     # Filter out soft-deleted products
-    query = select(Product).where(Product.is_deleted == False)
+    query = (
+        select(Product)
+        .options(selectinload(Product.images), selectinload(Product.variants))
+        .where(Product.is_deleted == False)
+    )
 
     if search:
         search_filter = f"%{search}%"
@@ -101,7 +106,9 @@ async def get_product(
 ) -> Any:
     """Retrieve a single product by its ID, excluding soft-deleted products."""
     result = await db.execute(
-        select(Product).where(Product.id == product_id, Product.is_deleted == False)
+        select(Product)
+        .options(selectinload(Product.images), selectinload(Product.variants))
+        .where(Product.id == product_id, Product.is_deleted == False)
     )
     product = result.scalar_one_or_none()
     if not product:

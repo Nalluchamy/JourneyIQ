@@ -11,6 +11,8 @@ from app.models.order_item import OrderItem
 from app.models.order_status_history import OrderStatusHistory
 from app.models.payment import Payment
 from app.models.product import Product
+from app.models.product_variant import ProductVariant
+from app.models.product_image import ProductImage
 from app.models.recommendation import Recommendation
 from app.models.refresh_token import RefreshToken
 from app.models.review import Review
@@ -34,6 +36,8 @@ __all__ = [
     "OrderStatusHistory",
     "Payment",
     "Product",
+    "ProductVariant",
+    "ProductImage",
     "Recommendation",
     "RefreshToken",
     "Review",

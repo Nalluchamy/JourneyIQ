@@ -24,21 +24,24 @@ class SafetyModule:
                 "status": "pending"
             }
         }
+        self.processed_actions: set[str] = set()
 
     def get_pending(self) -> list[dict[str, Any]]:
         return list(self.pending_actions.values())
 
     def add_to_queue(self, action: dict[str, Any]) -> None:
-        self.pending_actions[action["id"]] = {
-            **action,
-            "status": "pending"
-        }
+        if action["id"] not in self.processed_actions and action["id"] not in self.pending_actions:
+            self.pending_actions[action["id"]] = {
+                **action,
+                "status": "pending"
+            }
 
     def approve_action(self, action_id: str) -> dict[str, Any] | None:
         """Mark action as approved, removing it from queue or changing status."""
         if action_id in self.pending_actions:
             act = self.pending_actions.pop(action_id)
             act["status"] = "approved"
+            self.processed_actions.add(action_id)
             return act
         return None
 
@@ -47,6 +50,7 @@ class SafetyModule:
         if action_id in self.pending_actions:
             act = self.pending_actions.pop(action_id)
             act["status"] = "rejected"
+            self.processed_actions.add(action_id)
             return act
         return None
 

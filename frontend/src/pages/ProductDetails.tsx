@@ -282,7 +282,7 @@ export const ProductDetails: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4 border-y border-white/10 py-4">
-            <span className="text-3xl font-black text-white">${Number(product.price).toFixed(2)}</span>
+            <span className="text-3xl font-black text-white">₹{Number(product.price).toFixed(2)}</span>
             <span
               className={`rounded px-2.5 py-1 text-xs font-black uppercase tracking-wider ${
                 product.stock > 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
@@ -346,7 +346,7 @@ export const ProductDetails: React.FC = () => {
               {product.image_url && <img src={product.image_url} alt="" className="h-10 w-10 object-cover rounded bg-white/5 border border-white/10" />}
               <div>
                 <span className="text-white text-xs font-bold block truncate max-w-[120px] sm:max-w-xs">{product.name}</span>
-                <span className="text-cyan-400 text-xs font-black">${Number(product.price).toFixed(2)}</span>
+                <span className="text-cyan-400 text-xs font-black">₹{Number(product.price).toFixed(2)}</span>
               </div>
             </div>
             
@@ -477,7 +477,7 @@ export const ProductDetails: React.FC = () => {
                 <h4 className="font-bold text-white text-xs leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                   {p.name}
                 </h4>
-                <span className="font-black text-white text-xs">${Number(p.price).toFixed(2)}</span>
+                <span className="font-black text-white text-xs">₹{Number(p.price).toFixed(2)}</span>
               </Link>
             ))}
           </div>
@@ -505,7 +505,7 @@ export const ProductDetails: React.FC = () => {
                 <h4 className="font-bold text-white text-xs leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                   {p.name}
                 </h4>
-                <span className="font-black text-white text-xs">${Number(p.price).toFixed(2)}</span>
+                <span className="font-black text-white text-xs">₹{Number(p.price).toFixed(2)}</span>
               </Link>
             ))}
           </div>
@@ -532,7 +532,7 @@ export const ProductDetails: React.FC = () => {
                 <h4 className="font-bold text-white text-xs leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                   {view.product?.name || 'Product'}
                 </h4>
-                <span className="font-black text-white text-xs">${view.product?.price?.toFixed(2) || '0.00'}</span>
+                <span className="font-black text-white text-xs">₹{view.product?.price?.toFixed(2) || '0.00'}</span>
               </Link>
             ))}
           </div>

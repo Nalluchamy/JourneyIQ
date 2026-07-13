@@ -9,6 +9,7 @@ from app.services.assistant.memory import assistant_memory
 from app.services.assistant.fallback import get_fallback_reply
 from app.services.assistant.providers.gemini import GeminiAIProvider
 from app.services.assistant.providers.openai import OpenAIProvider
+from app.services.assistant.providers.nvidia import NvidiaAIProvider
 from app.services.assistant.providers.local import LocalAIProvider
 
 
@@ -24,6 +25,7 @@ class ChatAssistantService:
         # Instantiate providers
         self.gemini_provider = GeminiAIProvider()
         self.openai_provider = OpenAIProvider()
+        self.nvidia_provider = NvidiaAIProvider()
         self.local_provider = LocalAIProvider()
 
     async def process_message(
@@ -109,6 +111,15 @@ class ChatAssistantService:
                 reply = await self.openai_provider.generate_response(prompt)
                 source = "openai"
                 confidence = 0.92
+            except Exception:
+                pass
+
+        # Try NVIDIA if both Gemini and OpenAI failed or are unconfigured
+        if not reply and self.nvidia_provider.is_configured():
+            try:
+                reply = await self.nvidia_provider.generate_response(prompt)
+                source = "nvidia"
+                confidence = 0.90
             except Exception:
                 pass
 

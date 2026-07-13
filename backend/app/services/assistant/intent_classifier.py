@@ -20,7 +20,7 @@ class IntentClassifier:
                 r"\b(which is better|better choice)\b"
             ],
             "trending_products": [
-                r"\b(trending|popular|best sellers|hot selling|most popular)\b",
+                r"\b(trending|popular|best sellers|hot selling|most popular|best rated|top rated|highest rated|high rated)\b",
                 r"\btrending\b"
             ],
             "wishlist_based": [

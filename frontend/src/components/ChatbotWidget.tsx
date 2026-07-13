@@ -186,7 +186,7 @@ export const ChatbotWidget: React.FC = () => {
                         <div className="min-w-0 flex-1">
                           <h4 className="font-bold text-xs text-white truncate">{prod.name}</h4>
                           <div className="flex items-center justify-between mt-1">
-                            <span className="text-[11px] font-bold text-cyan-400">${prod.price.toFixed(2)}</span>
+                            <span className="text-[11px] font-bold text-cyan-400">₹{prod.price.toFixed(2)}</span>
                             <span className="text-[10px] text-amber-400 font-semibold">{prod.rating}⭐</span>
                           </div>
                         </div>
@@ -236,7 +236,7 @@ export const ChatbotWidget: React.FC = () => {
           >
             <input
               type="text"
-              placeholder="Ask anything (e.g. Recommend a Laptop under $1000)"
+              placeholder="Ask anything (e.g. Recommend a Laptop under ₹1000)"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="flex-1 px-4 py-2.5 text-sm bg-black/50 border border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 text-white"

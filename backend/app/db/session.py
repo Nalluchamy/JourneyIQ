@@ -15,14 +15,17 @@ logger.info(
 )
 
 # Create the async engine
-engine = create_async_engine(
-    db_url,
-    echo=False,
-    future=True,
-    pool_pre_ping=True,  # checks connection health before utilizing
-    pool_size=20,  # baseline size of pool
-    max_overflow=10,  # max temporary connections beyond pool_size
-)
+engine_kwargs = {
+    "echo": False,
+    "future": True,
+}
+# Only apply connection pooling settings for PostgreSQL
+if not db_url.startswith("sqlite"):
+    engine_kwargs["pool_pre_ping"] = True
+    engine_kwargs["pool_size"] = 20
+    engine_kwargs["max_overflow"] = 10
+
+engine = create_async_engine(db_url, **engine_kwargs)
 
 # Slow Query Logging Event Listeners
 import time

@@ -313,7 +313,7 @@ export const Home: React.FC = () => {
                       <h3 className="font-bold text-white text-sm leading-tight line-clamp-1 group-hover:text-primary transition-colors mt-0.5">{prod.name}</h3>
                     </div>
                     <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
-                      <span className="text-base font-black text-white">${Number(prod.price).toFixed(2)}</span>
+                      <span className="text-base font-black text-white">₹{Number(prod.price).toFixed(2)}</span>
                       <Link to={`/products/${prod.id}`} className="text-xs font-extrabold text-cyan-400 hover:underline">View details →</Link>
                     </div>
                   </TiltCard>
@@ -332,7 +332,7 @@ export const Home: React.FC = () => {
                       <h3 className="font-bold text-white text-sm mt-0.5">Vapor Glide Shoe v{i}</h3>
                     </div>
                     <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
-                      <span className="text-base font-black text-white">$149.99</span>
+                      <span className="text-base font-black text-white">₹149.99</span>
                       <span className="text-xs font-bold text-cyan-400">View details →</span>
                     </div>
                   </TiltCard>
@@ -383,7 +383,7 @@ export const Home: React.FC = () => {
                   </Link>
                 </div>
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
-                  <span className="text-md font-black text-white">${Number(rec.product.price).toFixed(2)}</span>
+                  <span className="text-md font-black text-white">₹{Number(rec.product.price).toFixed(2)}</span>
                   <Link
                     to={`/products/${rec.product.id}`}
                     onClick={() => handleRecClick(rec.product.id)}
@@ -428,7 +428,7 @@ export const Home: React.FC = () => {
                   </Link>
                 </div>
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
-                  <span className="text-md font-black text-white">${Number(prod.price).toFixed(2)}</span>
+                  <span className="text-md font-black text-white">₹{Number(prod.price).toFixed(2)}</span>
                   <Link to={`/products/${prod.id}`} className="text-xs font-bold text-yellow-450 hover:underline">View details →</Link>
                 </div>
               </TiltCard>

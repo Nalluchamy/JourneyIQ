@@ -190,7 +190,7 @@ export const Profile: React.FC = () => {
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground block">
-                          Total: <strong className="text-white">${order.total.toFixed(2)}</strong>
+                          Total: <strong className="text-white">₹{order.total.toFixed(2)}</strong>
                         </span>
                       </div>
                       <div className="text-xs text-muted-foreground text-left md:text-right">
