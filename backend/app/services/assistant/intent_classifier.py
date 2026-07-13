@@ -6,6 +6,25 @@ class IntentClassifier:
     def __init__(self) -> None:
         # Regex mappings for specific intent detection
         self.patterns = {
+            "project_info": [
+                r"\b(what is|about|tell me about|explain|describe)\b.*\b(journeyiq|journey iq|this app|this platform|this project|this website|this site|this store)\b",
+                r"\b(journeyiq|journey iq)\b.*\b(what|about|is|mean|does)\b",
+                r"\b(who built|who made|who created|who developed|tech stack|technology|architecture|features|how does it work|how it works)\b",
+                r"\b(what can you do|your capabilities|your features|help me understand)\b",
+                r"\b(deep learning|machine learning|neural|ncf|recommendation engine|recommendation system|collaborative filtering)\b",
+                r"\b(how does|what does)\b.*\b(recommendation|ai|chatbot|assistant|nlp)\b",
+                r"\b(agentic|agent loop|dashboard|analytics|sentiment)\b.*\b(what|how|explain|about)\b",
+                r"\b(ml|dl|ai|nlp)\b.*\b(work|how|what|explain|about|in|project|used|use)\b",
+                r"\b(how|what)\b.*\b(ml|dl|ai|nlp)\b",
+                r"\b(pytorch|torch|vader|textblob|scikit|sklearn|numpy|pandas)\b",
+                r"\b(model|training|inference|prediction|embedding|epoch|neural network)\b.*\b(how|what|explain|work|about)\b",
+                r"\b(how|what)\b.*\b(model|training|inference|prediction)\b.*\b(work|used|about)\b",
+                r"\b(data science|data flow|pipeline|workflow)\b",
+            ],
+            "greeting": [
+                r"^(hi|hello|hey|good morning|good evening|good afternoon|howdy|sup|yo|hola)[\s!?.]*$",
+                r"\b(continue shopping|keep browsing|browse more|shop more)\b",
+            ],
             "order_status": [
                 r"\border\b.*\b(track|status|where|history)\b",
                 r"\btrack\b.*\border\b",

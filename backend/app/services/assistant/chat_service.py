@@ -1,4 +1,5 @@
 import re
+import logging
 from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -102,26 +103,26 @@ class ChatAssistantService:
                 reply = await self.gemini_provider.generate_response(prompt)
                 source = "gemini"
                 confidence = 0.95
-            except Exception:
-                pass
+            except Exception as e:
+                logging.error(f"Gemini error: {e}")
 
-        # Try OpenAI if Gemini failed or is unconfigured
-        if not reply and self.openai_provider.is_configured():
-            try:
-                reply = await self.openai_provider.generate_response(prompt)
-                source = "openai"
-                confidence = 0.92
-            except Exception:
-                pass
-
-        # Try NVIDIA if both Gemini and OpenAI failed or are unconfigured
+        # Try NVIDIA (primary configured provider)
         if not reply and self.nvidia_provider.is_configured():
             try:
                 reply = await self.nvidia_provider.generate_response(prompt)
                 source = "nvidia"
+                confidence = 0.92
+            except Exception as e:
+                logging.error(f"NVIDIA error: {e}")
+
+        # Try OpenAI as fallback
+        if not reply and self.openai_provider.is_configured():
+            try:
+                reply = await self.openai_provider.generate_response(prompt)
+                source = "openai"
                 confidence = 0.90
-            except Exception:
-                pass
+            except Exception as e:
+                logging.error(f"OpenAI error: {e}")
 
         # Fallback to local template generator
         if not reply:

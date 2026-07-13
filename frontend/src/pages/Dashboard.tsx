@@ -696,7 +696,7 @@ export const Dashboard: React.FC = () => {
                                 <td className="py-2.5 font-bold text-white truncate max-w-[150px]">{p.name}</td>
                                 <td className="py-2.5 text-slate-400">{p.brand}</td>
                                 <td className="py-2.5 text-right text-emerald-450 font-bold">{p.sales}</td>
-                                <td className="py-2.5 text-right text-white">₹{p.price.toFixed(2)}</td>
+                                <td className="py-2.5 text-right text-white">₹{Number(p.price).toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -878,18 +878,18 @@ export const Dashboard: React.FC = () => {
                       successfully processed checkout transactions. The average order value is stable at{' '}
                       <span className="text-white font-bold">
                         {orders?.summary?.average_order_value !== undefined
-                          ? `₹${orders.summary.average_order_value.toFixed(2)}`
+                          ? `₹${Number(orders.summary.average_order_value).toFixed(2)}`
                           : '₹0.00'}
                       </span>. Payment processors report a{' '}
                       <span className="text-emerald-400 font-bold">
                         {orders?.summary?.payment_success_rate !== undefined
-                          ? `${orders.summary.payment_success_rate.toFixed(1)}%`
+                          ? `${Number(orders.summary.payment_success_rate).toFixed(1)}%`
                           : '100%'}
                       </span>{' '}
                       success rate with zero gateway failures detected in the past 24 hours. Coupon promotions are driving{' '}
                       <span className="text-cyan-400 font-bold">
                         {orders?.summary?.coupon_usage_rate !== undefined
-                          ? `${orders.summary.coupon_usage_rate.toFixed(1)}%`
+                          ? `${Number(orders.summary.coupon_usage_rate).toFixed(1)}%`
                           : '0%'}
                       </span>{' '}
                       of checkout conversions.
@@ -925,7 +925,7 @@ export const Dashboard: React.FC = () => {
                                 <td className="py-4 text-slate-300">{o.customer_name}</td>
                                 <td className="py-4 text-slate-400">{new Date(o.created_at).toLocaleDateString()}</td>
                                 <td className="py-4 uppercase text-xs font-bold text-indigo-400">{o.status}</td>
-                                <td className="py-4 text-right font-bold text-white">₹{o.total.toFixed(2)}</td>
+                                <td className="py-4 text-right font-bold text-white">₹{Number(o.total).toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>

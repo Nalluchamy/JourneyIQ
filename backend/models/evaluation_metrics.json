@@ -1,8 +1,8 @@
 {
-  "precision_at_10": 0.0469,
-  "recall_at_10": 0.0544,
-  "f1_at_10": 0.0482,
-  "hit_rate": 0.4082,
-  "ndcg": 0.0562,
-  "coverage": 0.68
+  "precision_at_10": 0.0303,
+  "recall_at_10": 0.0324,
+  "f1_at_10": 0.0305,
+  "hit_rate": 0.2525,
+  "ndcg": 0.0334,
+  "coverage": 0.56
 }

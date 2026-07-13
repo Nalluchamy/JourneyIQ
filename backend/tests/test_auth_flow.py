@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import hash_token, verify_password
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
+from app.core.config import settings
 
 
 @pytest.mark.asyncio
@@ -23,7 +24,8 @@ async def test_user_registration_flow(
     }
 
     # Patch mock email service during registration
-    with patch("app.api.endpoints.auth.get_mail_service") as mock_mail_factory:
+    with patch("app.api.endpoints.auth.get_mail_service") as mock_mail_factory, \
+         patch.object(settings, "REQUIRE_EMAIL_VERIFICATION", True):
         mock_mail = mock_mail_factory.return_value
         mock_mail.send_verification_email = AsyncMock()
         response = await client.post("/api/v1/auth/register", json=register_data)
@@ -65,7 +67,8 @@ async def test_login_and_verification_requirement(
         "username": "unverified@example.com",
         "password": "Password123",
     }
-    with patch("app.api.endpoints.auth.verify_password", return_value=True):
+    with patch("app.api.endpoints.auth.verify_password", return_value=True), \
+         patch.object(settings, "REQUIRE_EMAIL_VERIFICATION", True):
         login_res = await client.post("/api/v1/auth/login", data=login_data)
         assert login_res.status_code == 400
         assert "verification required" in login_res.json()["message"].lower()

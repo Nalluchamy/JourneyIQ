@@ -1,5 +1,14 @@
 import os
+from pathlib import Path
 from typing import Any
+
+# Load .env explicitly so NVIDIA_API_KEY is available even if not set as a system env var
+try:
+    from dotenv import load_dotenv
+    _env_path = Path(__file__).resolve().parents[4] / ".env"  # backend/.env
+    load_dotenv(_env_path, override=False)
+except ImportError:
+    pass
 
 try:
     import openai

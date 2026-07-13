@@ -1,6 +1,6 @@
 import re
 from typing import Any
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -31,6 +31,10 @@ class ProductRetriever:
         Returns:
             list of dicts containing serialized product attributes.
         """
+        # Skip DB search for non-product intents
+        if intent in ("project_info", "greeting"):
+            return []
+
         stmt = select(Product).where(Product.is_deleted == False, Product.is_active == True)
         
         cleaned_query = query.lower().strip()
@@ -86,8 +90,9 @@ class ProductRetriever:
                 for term in search_terms:
                     or_conds.append(Product.name.ilike(f"%{term}%"))
                     or_conds.append(Product.brand.ilike(f"%{term}%"))
+                    or_conds.append(Product.description.ilike(f"%{term}%"))
                 if or_conds:
-                    stmt = stmt.where(and_(*or_conds))
+                    stmt = stmt.where(or_(*or_conds))
 
         # Limit to 5 results
         stmt = stmt.limit(5)

@@ -186,7 +186,8 @@ export const ChatbotWidget: React.FC = () => {
                         <div className="min-w-0 flex-1">
                           <h4 className="font-bold text-xs text-white truncate">{prod.name}</h4>
                           <div className="flex items-center justify-between mt-1">
-                            <span className="text-[11px] font-bold text-cyan-400">₹{prod.price.toFixed(2)}</span>
+                            <span className="text-[11px] font-bold text-cyan-400">₹{Number(prod.price).toFixed(2)}</span>
+                            {prod.stock !== undefined && prod.stock <= 5 && <span className="ml-1 text-[9px] text-amber-400">Only {prod.stock} left</span>}
                             <span className="text-[10px] text-amber-400 font-semibold">{prod.rating}⭐</span>
                           </div>
                         </div>

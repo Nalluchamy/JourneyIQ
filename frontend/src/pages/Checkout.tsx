@@ -105,7 +105,7 @@ export const Checkout: React.FC = () => {
     e.preventDefault();
     if (!couponCode.trim()) return;
 
-    const cartTotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const cartTotal = cartItems.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
 
     try {
       const res = await couponsApi.applyCoupon(couponCode, cartTotal);
@@ -293,8 +293,8 @@ export const Checkout: React.FC = () => {
                       <p className="text-xs text-muted-foreground mt-1 font-medium">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-white">₹{(item.product.price * item.quantity).toFixed(2)}</span>
-                      <p className="text-xs text-muted-foreground">₹{item.product.price.toFixed(2)} each</p>
+                      <span className="font-bold text-white">₹{(Number(item.product.price) * item.quantity).toFixed(2)}</span>
+                      <p className="text-xs text-muted-foreground">₹{Number(item.product.price).toFixed(2)} each</p>
                     </div>
                   </div>
                 ))}

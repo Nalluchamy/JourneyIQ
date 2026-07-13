@@ -532,7 +532,7 @@ export const ProductDetails: React.FC = () => {
                 <h4 className="font-bold text-white text-xs leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                   {view.product?.name || 'Product'}
                 </h4>
-                <span className="font-black text-white text-xs">₹{view.product?.price?.toFixed(2) || '0.00'}</span>
+                <span className="font-black text-white text-xs">₹{view.product?.price ? Number(view.product.price).toFixed(2) : '0.00'}</span>
               </Link>
             ))}
           </div>
