@@ -49,9 +49,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from app.middleware.security import RequestTimeoutMiddleware, SecurityHeadersMiddleware
 
 # Configure CORS middleware
-allowed_origins = [settings.FRONTEND_URL]
-if settings.ENVIRONMENT.lower() in ("development", "dev", "testing"):
-    allowed_origins.append("http://localhost:5173")
+allowed_origins = [settings.FRONTEND_URL, "http://localhost:5173"]
 
 app.add_middleware(
     CORSMiddleware,
