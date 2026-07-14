@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Resolve backend API URL from Vite environment variable
-const BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 // Generate or retrieve session UUID for storefront journey tracking
 export const getOrCreateSessionId = (): string => {
