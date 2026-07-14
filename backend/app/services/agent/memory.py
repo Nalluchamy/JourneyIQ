@@ -1,45 +1,89 @@
 from typing import Any
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.agent_action import AgentAction
+from app.models.agent_learning import AgentLearning
+
 
 class AgentMemory:
-    """Manages the history of actions, decisions, and learning indices for the Agentic AI orchestrator."""
+    """Manages the long-term context, logs, and historical statistics of Agent actions directly from database."""
 
-    def __init__(self) -> None:
-        self.decision_history: list[dict[str, Any]] = [
-            {
-                "id": "1",
-                "action": "A/B test launch for new layouts",
-                "status": "completed",
-                "impact": "Conversion improved by 2.4%",
-                "timestamp": "2026-07-10 14:32"
-            },
-            {
-                "id": "2",
-                "action": "Restock notification to supply managers",
-                "status": "completed",
-                "impact": "Restocked 12 critical units",
-                "timestamp": "2026-07-11 09:15"
-            }
-        ]
-        self.rejected_plans: list[dict[str, Any]] = []
+    def __init__(self, db: AsyncSession):
+        self.db = db
 
-    def get_history(self) -> list[dict[str, Any]]:
-        return self.decision_history
+    async def get_memory_metrics(self) -> dict[str, Any]:
+        """
+        Calculates memory insights over the last 500 actions.
+        """
+        # Fetch last 500 actions
+        stmt = select(AgentAction).order_by(AgentAction.created_at.desc()).limit(500)
+        res = await self.db.execute(stmt)
+        actions = res.scalars().all()
 
-    def log_decision(self, action_desc: str, status: str, impact: str = "Pending evaluation") -> None:
-        import datetime
-        self.decision_history.insert(0, {
-            "id": str(len(self.decision_history) + 1),
-            "action": action_desc,
-            "status": status,
-            "impact": impact,
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        })
+        total = len(actions)
+        completed = len([a for a in actions if a.status == "COMPLETED"])
+        failed = len([a for a in actions if a.status == "FAILED"])
+        pending = len([a for a in actions if a.status == "PENDING"])
+        rejected = len([a for a in actions if a.status == "REJECTED"])
 
-    def log_rejection(self, plan_desc: str) -> None:
-        self.rejected_plans.append({
-            "plan": plan_desc,
-            "timestamp": "Now"
-        })
+        # Success / Failure counts from learning history
+        stmt_learn = select(AgentLearning).limit(500)
+        res_learn = await self.db.execute(stmt_learn)
+        learnings = res_learn.scalars().all()
+        
+        successful_learnings = len([l for l in learnings if l.success])
+        failed_learnings = len(learnings) - successful_learnings
 
+        # Average revenue lift
+        lifts = [l.revenue_after - l.revenue_before for l in learnings if l.revenue_after > l.revenue_before]
+        avg_revenue_lift = sum(lifts) / len(lifts) if lifts else 0.0
 
-agent_memory = AgentMemory()
+        # Average execution time
+        exec_times = [a.execution_time_ms for a in actions if a.execution_time_ms is not None]
+        avg_exec_time = sum(exec_times) / len(exec_times) if exec_times else 0.0
+
+        # Most common issue categories
+        issue_counts = {}
+        for a in actions:
+            clean_issue = a.source_issue.split("-")[0] if "-" in a.source_issue else a.source_issue
+            issue_counts[clean_issue] = issue_counts.get(clean_issue, 0) + 1
+        sorted_issues = sorted(issue_counts.items(), key=lambda x: x[1], reverse=True)
+        common_issues = [{"issue": k, "count": v} for k, v in sorted_issues[:3]]
+
+        # Average confidence
+        confidences = [a.confidence for a in actions]
+        avg_confidence = sum(confidences) / len(confidences) if confidences else 0.90
+
+        return {
+            "total_decisions": total,
+            "completed_actions": completed,
+            "failed_actions": failed,
+            "pending_actions": pending,
+            "rejected_actions": rejected,
+            "learning_success_count": successful_learnings,
+            "learning_failure_count": failed_learnings,
+            "average_revenue_lift": round(avg_revenue_lift, 2),
+            "average_execution_time_ms": round(avg_exec_time, 1),
+            "average_confidence": round(avg_confidence * 100, 1),
+            "common_issues": common_issues
+        }
+
+    async def get_history_logs(self, limit: int = 20) -> list[dict[str, Any]]:
+        """
+        Retrieves the timeline execution log of actions.
+        """
+        stmt = select(AgentAction).where(AgentAction.status.in_(["COMPLETED", "FAILED", "REJECTED"])).order_by(AgentAction.created_at.desc()).limit(limit)
+        res = await self.db.execute(stmt)
+        actions = res.scalars().all()
+
+        logs = []
+        for a in actions:
+            logs.append({
+                "id": a.id,
+                "action": a.title,
+                "status": a.status,
+                "impact": a.execution_result or "No outcome registered.",
+                "timestamp": a.executed_at.strftime("%Y-%m-%d %H:%M") if a.executed_at else a.created_at.strftime("%Y-%m-%d %H:%M")
+            })
+        return logs

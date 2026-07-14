@@ -8,6 +8,7 @@ from app.api.endpoints import (
     cart,
     categories,
     checkout,
+    copilot,
     coupons,
     dashboard,
     events,
@@ -51,4 +52,5 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboar
 api_router.include_router(assistant.router, prefix="/assistant", tags=["assistant"])
 api_router.include_router(generative.router, prefix="/generative", tags=["generative"])
 api_router.include_router(agent.router, prefix="/agent", tags=["agent"])
+api_router.include_router(copilot.router, prefix="/copilot", tags=["copilot"])
 api_router.include_router(system.router, prefix="/system", tags=["system"])

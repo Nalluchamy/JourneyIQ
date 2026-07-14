@@ -24,6 +24,8 @@ if not db_url.startswith("sqlite"):
     engine_kwargs["pool_pre_ping"] = True
     engine_kwargs["pool_size"] = 20
     engine_kwargs["max_overflow"] = 10
+    if settings.ENVIRONMENT.lower() in ("production", "prod", "staging"):
+        engine_kwargs["connect_args"] = {"ssl": "require"}
 
 engine = create_async_engine(db_url, **engine_kwargs)
 

@@ -60,9 +60,11 @@ def setup_logging() -> None:
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.handlers = [handler, file_handler]
-    root_logger.setLevel(
-        logging.INFO if settings.ENVIRONMENT.lower() == "production" else logging.DEBUG
-    )
+    log_level_str = settings.LOG_LEVEL.upper()
+    valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+    if log_level_str not in valid_levels:
+        log_level_str = "INFO" if settings.ENVIRONMENT.lower() == "production" else "DEBUG"
+    root_logger.setLevel(getattr(logging, log_level_str))
 
     # Silence noisy loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)

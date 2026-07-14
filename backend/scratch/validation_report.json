@@ -1,0 +1,71 @@
+{
+  "version": "1.4.1",
+  "timestamp": "2026-07-13T22:08:08.200050",
+  "overall_score_pct": 77,
+  "total_checks": 9,
+  "passed": 7,
+  "warnings": 2,
+  "errors": 0,
+  "elapsed_seconds": 24.38,
+  "checks": [
+    {
+      "check": "Database Connection",
+      "status": "PASS",
+      "detail": "",
+      "elapsed_s": 0.548
+    },
+    {
+      "check": "Storefront Data",
+      "status": "WARN",
+      "detail": "No products found \u2014 run: python seed.py",
+      "elapsed_s": 0.215
+    },
+    {
+      "check": "Recommendation Engine",
+      "status": "PASS",
+      "detail": "RecommendationService imported successfully",
+      "elapsed_s": 0.177
+    },
+    {
+      "check": "Deep Learning Model (NCF)",
+      "status": "PASS",
+      "detail": "Model loaded (7 KB), Precision@10=0.000, NDCG=0.000",
+      "elapsed_s": 3.016
+    },
+    {
+      "check": "NLP Sentiment Engine",
+      "status": "PASS",
+      "detail": "Sentiment accuracy: 100% (3/3 test cases)",
+      "elapsed_s": 0.004
+    },
+    {
+      "check": "Agentic AI Loop",
+      "status": "PASS",
+      "detail": "Observer returned 11 telemetry sections, Analyzer found 0 issue(s)",
+      "elapsed_s": 0.108
+    },
+    {
+      "check": "Business Copilot",
+      "status": "PASS",
+      "detail": "Query executed (3 data keys), 1 insight(s) generated",
+      "elapsed_s": 0.084
+    },
+    {
+      "check": "API Health Endpoints",
+      "status": "WARN",
+      "detail": "Backend not running at http://localhost:8000 \u2014 start with: uvicorn app.main:app --reload",
+      "elapsed_s": 20.228
+    },
+    {
+      "check": "NVIDIA / LLM Chat Config",
+      "status": "PASS",
+      "detail": "NVIDIA API key detected \u2014 LLM chat enabled",
+      "elapsed_s": 0.0
+    }
+  ],
+  "warning_details": [
+    "Storefront Data: No products found \u2014 run: python seed.py",
+    "API Health Endpoints: Backend not running at http://localhost:8000 \u2014 start with: uvicorn app.main:app --reload"
+  ],
+  "error_details": []
+}

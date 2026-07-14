@@ -1,4 +1,6 @@
 from app.db.base_class import Base, BaseModel
+from app.models.agent_action import AgentAction
+from app.models.agent_learning import AgentLearning
 from app.models.audit_log import AuditLog
 from app.models.cart_item import CartItem
 from app.models.category import Category
@@ -22,6 +24,8 @@ from app.models.user import User
 from app.models.wishlist_item import WishlistItem
 
 __all__ = [
+    "AgentAction",
+    "AgentLearning",
     "AuditLog",
     "Base",
     "BaseModel",

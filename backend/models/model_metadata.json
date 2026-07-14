@@ -1,43 +1,22 @@
 {
-  "version": "v1783939477",
-  "active_filename": "ncf_model_v1783939477.pt",
-  "trained_at": "2026-07-13T10:44:37Z",
-  "training_time_seconds": 2.34,
-  "best_epoch": 4,
-  "best_val_loss": 0.04307,
+  "version": "v1784010080",
+  "active_filename": "ncf_model_v1784010080.pt",
+  "trained_at": "2026-07-14T06:21:20Z",
+  "training_time_seconds": 1.86,
+  "best_epoch": 2,
+  "best_val_loss": 0.26922,
   "history": {
     "epochs": [
       1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9
+      2
     ],
     "train_losses": [
-      0.0944,
-      0.06556,
-      0.05974,
-      0.05549,
-      0.05445,
-      0.05173,
-      0.04777,
-      0.04551,
-      0.04551
+      0.27385,
+      0.27089
     ],
     "val_losses": [
-      0.08662,
-      0.05472,
-      0.04423,
-      0.04307,
-      0.04436,
-      0.04414,
-      0.04596,
-      0.04598,
-      0.04581
+      0.27089,
+      0.26922
     ]
   }
 }

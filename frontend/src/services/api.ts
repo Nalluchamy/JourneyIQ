@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Resolve backend API URL from Vite environment variable
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 // Generate or retrieve session UUID for storefront journey tracking
 export const getOrCreateSessionId = (): string => {
@@ -310,20 +310,55 @@ export const agentApi = {
     const res = await apiClient.get('/api/v1/agent/status');
     return res.data.data;
   },
-  getHistory: async () => {
-    const res = await apiClient.get('/api/v1/agent/history');
+  getActions: async () => {
+    const res = await apiClient.get('/api/v1/agent/actions');
     return res.data.data;
   },
-  getPending: async () => {
-    const res = await apiClient.get('/api/v1/agent/pending');
+  getLogs: async () => {
+    const res = await apiClient.get('/api/v1/agent/logs');
     return res.data.data;
   },
-  approveAction: async (actionId: string) => {
+  getLearning: async () => {
+    const res = await apiClient.get('/api/v1/agent/learning');
+    return res.data.data;
+  },
+  approveAction: async (actionId: number) => {
     const res = await apiClient.post(`/api/v1/agent/actions/${actionId}/approve`);
     return res.data.data;
   },
-  rejectAction: async (actionId: string) => {
+  rejectAction: async (actionId: number) => {
     const res = await apiClient.post(`/api/v1/agent/actions/${actionId}/reject`);
+    return res.data.data;
+  },
+  triggerRun: async () => {
+    const res = await apiClient.post('/api/v1/agent/run');
+    return res.data.data;
+  },
+};
+
+export const copilotApi = {
+  chat: async (message: string, sessionId: string) => {
+    const res = await apiClient.post('/api/v1/copilot/chat', { message, session_id: sessionId });
+    return res.data.data;
+  },
+  getQuestions: async () => {
+    const res = await apiClient.get('/api/v1/copilot/questions');
+    return res.data.data;
+  },
+  getSummary: async () => {
+    const res = await apiClient.get('/api/v1/copilot/summary');
+    return res.data.data;
+  },
+  getReport: async (reportType: string, format: string = 'markdown') => {
+    const res = await apiClient.get(`/api/v1/copilot/report/${reportType}?format=${format}`);
+    return res.data.data;
+  },
+  getInsights: async () => {
+    const res = await apiClient.get('/api/v1/copilot/insights');
+    return res.data.data;
+  },
+  getRisks: async () => {
+    const res = await apiClient.get('/api/v1/copilot/risks');
     return res.data.data;
   },
 };

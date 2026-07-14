@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"
+    LOG_LEVEL: str = "INFO"
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@db:5432/journeyiq"
@@ -37,5 +38,32 @@ class Settings(BaseSettings):
     # Redis Caching (Optional)
     REDIS_URL: str | None = None
 
+    # AI / LLM Integrations
+    NVIDIA_API_KEY: str | None = None
+
+    # Supabase Integration
+    SUPABASE_URL: str | None = None
+    SUPABASE_KEY: str | None = None
+
+    @classmethod
+    def validate_production_secrets(cls, values: "Settings") -> "Settings":
+        if values.ENVIRONMENT.lower() in ("production", "prod", "staging"):
+            sec_placeholder = "replace-with-a-very-secure-secret-key-for-production"
+            jwt_placeholder = "replace-with-a-very-secure-jwt-secret-for-production"
+            if values.SECRET_KEY == sec_placeholder or sec_placeholder in values.SECRET_KEY:
+                raise ValueError("SECRET_KEY must be overridden with a secure random key in production/staging environments.")
+            if values.JWT_SECRET == jwt_placeholder or jwt_placeholder in values.JWT_SECRET:
+                raise ValueError("JWT_SECRET must be overridden with a secure random key in production/staging environments.")
+            if not values.SUPABASE_URL:
+                raise ValueError("SUPABASE_URL must be specified in production/staging environments.")
+            if not values.SUPABASE_KEY:
+                raise ValueError("SUPABASE_KEY must be specified in production/staging environments.")
+        return values
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        self.validate_production_secrets(self)
+
 
 settings = Settings()
+

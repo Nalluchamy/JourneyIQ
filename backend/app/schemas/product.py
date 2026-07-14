@@ -17,6 +17,13 @@ class ProductImageRead(BaseModel):
     image_type: str
     alt_text: str | None = None
 
+    @model_validator(mode="after")
+    def resolve_image_url(self) -> "ProductImageRead":
+        from app.core.storage import get_public_url
+        if self.image_url:
+            self.image_url = get_public_url(self.image_url)
+        return self
+
 
 class ProductVariantRead(BaseModel):
     """ProductVariant response schema."""
@@ -97,3 +104,10 @@ class ProductRead(BaseModel):
                 d["images"] = []
             return d
         return data
+
+    @model_validator(mode="after")
+    def resolve_image_url(self) -> "ProductRead":
+        from app.core.storage import get_public_url
+        if self.image_url:
+            self.image_url = get_public_url(self.image_url)
+        return self

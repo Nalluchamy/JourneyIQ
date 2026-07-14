@@ -18,6 +18,7 @@ from app.core.logging_config import logger, setup_logging
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Startup tasks
     from app.services.ml.scheduler import start_scheduler, stop_scheduler
+    from app.services.agent.scheduler import start_agent_scheduler, stop_agent_scheduler
     setup_logging()
     logger.info(
         "Starting JourneyIQ Backend Service",
@@ -26,10 +27,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         environment=settings.ENVIRONMENT,
     )
     start_scheduler()
+    start_agent_scheduler()
     yield
     # Shutdown tasks
     logger.info("Stopping JourneyIQ Backend Service")
     stop_scheduler()
+    stop_agent_scheduler()
 
 
 app = FastAPI(
@@ -46,9 +49,13 @@ from fastapi.middleware.gzip import GZipMiddleware
 from app.middleware.security import RequestTimeoutMiddleware, SecurityHeadersMiddleware
 
 # Configure CORS middleware
+allowed_origins = [settings.FRONTEND_URL]
+if settings.ENVIRONMENT.lower() in ("development", "dev", "testing"):
+    allowed_origins.append("http://localhost:5173")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL, "http://localhost:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],

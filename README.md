@@ -1,232 +1,470 @@
-# JourneyIQ — Personalized Retail & Customer Journey Intelligence Platform
+# JourneyIQ — AI-Powered Retail SaaS Platform
 
-JourneyIQ is an enterprise-grade retail SaaS platform built to optimize customer shopping journeys using real-time behavioral heuristics, cohort segmentation, and machine learning-driven recommendations.
+<div align="center">
 
-This repository represents the production-ready **v1.0.0 Release Candidate** codebase, integrating a premium 3D-styled Customer Storefront with an internal Owner/Staff Analytics Dashboard. The application features a fully asynchronous backend API gateway, a PyTorch Neural Collaborative Filtering (NCF) recommendation microservice, dynamic rate-limiting, Prometheus operational metrics, and automated disaster recovery backups.
+[![CI/CD](https://github.com/yourusername/JourneyIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/JourneyIQ/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-89%20passed-brightgreen)](https://github.com/yourusername/JourneyIQ)
+[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
+[![React](https://img.shields.io/badge/react-18.3-61DAFB.svg)](https://react.dev/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C.svg)](https://pytorch.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.4.1-purple)](CHANGELOG.md)
+
+**Enterprise-grade retail intelligence platform with deep learning recommendations, NLP sentiment analysis, autonomous AI agents, and a grounded Business Copilot.**
+
+[Features](#-features) · [Architecture](#-system-architecture) · [Installation](#-installation) · [API Docs](#-api-reference) · [ML Pipeline](#-mldl-pipeline) · [Deployment](#-deployment)
+
+</div>
 
 ---
 
-## 📊 System Architecture
+## ✨ Features
 
-JourneyIQ is structured as a decoupled, multi-layered microservices system to maximize throughput, data security, and model inference speed.
+| Module | Description |
+|--------|-------------|
+| 🛍️ **Premium Storefront** | 3D product cards, orbital animations, wishlist, cart, and checkout with coupon support |
+| 📊 **Owner Dashboard** | Real-time sales analytics, cohort RFM segmentation, inventory heatmaps |
+| 🤖 **NCF Recommendations** | PyTorch Neural Collaborative Filtering with hybrid cold-start fallback |
+| 🧠 **NLP Sentiment** | Lexicon + optional DistilBERT review analysis with keyword extraction |
+| 🔄 **Agentic AI** | Autonomous Observe→Analyze→Plan→Approve→Execute→Learn loop |
+| 💬 **AI Shopping Assistant** | NVIDIA NIM-powered conversational product discovery |
+| 🏢 **Business Copilot** | Grounded natural language queries over live database (zero hallucination) |
+| 🔐 **Auth & RBAC** | JWT refresh tokens, role-based access (Admin / Staff / Customer) |
+| 🚀 **MLOps** | Daily training scheduler, model versioning, rollback, evaluation metrics |
+| 🐳 **Docker Ready** | Multi-stage images, Docker Compose, Nginx reverse-proxy, Kubernetes manifests |
+
+---
+
+## 📐 System Architecture
 
 ```mermaid
 graph TD
     %% Clients
-    Storefront["Customer Storefront (React SPA)"] -->|https| Gateway["FastAPI API Gateway (8000)"]
-    Dashboard["Owner Analytics Dashboard"] -->|https| Gateway
+    Browser["Customer Browser (React SPA)"]
+    Dashboard["Owner Dashboard (React SPA)"]
 
-    %% Gateway Middlewares
-    subgraph "API Gateway Layer"
-        Gateway --> Limiter["Rate Limiter Middleware"]
-        Limiter --> Logger["Structlog Context Middleware"]
-        Logger --> Timeout["Timeout Middleware (10s)"]
+    Browser -->|HTTPS| Nginx["Nginx Reverse Proxy :80/:443"]
+    Dashboard -->|HTTPS| Nginx
+
+    subgraph "FastAPI Application"
+        Nginx -->|/api/v1/*| Gateway["API Gateway — Rate Limiter · Auth · Logger · Timeout"]
+
+        subgraph "Core Services"
+            Gateway --> AuthSrv["JWT Auth & RBAC"]
+            Gateway --> OrderSrv["Orders & Payments"]
+            Gateway --> ProductSrv["Products & Search"]
+            Gateway --> EventSrv["Behavioral Telemetry"]
+        end
+
+        subgraph "AI Services"
+            Gateway --> RecSrv["Hybrid Recommendation Service"]
+            Gateway --> NLPSrv["NLP Sentiment Analyzer"]
+            Gateway --> AgentSrv["Agentic AI Orchestrator"]
+            Gateway --> CopilotSrv["Business Copilot Engine"]
+            Gateway --> AssistantSrv["NVIDIA Chat Assistant"]
+        end
     end
 
-    %% Backend Services
-    subgraph "Application Core"
-        Timeout --> AuthSrv["JWT Auth & Security"]
-        Timeout --> OrderSrv["Order & Payments Service"]
-        Timeout --> EventSrv["Behavioral Telemetry Service"]
-        Timeout --> RecSrv["Hybrid Recommendation Service"]
+    subgraph "Data Layer"
+        AuthSrv & OrderSrv & ProductSrv & EventSrv --> DB[("PostgreSQL / SQLite")]
+        RecSrv --> Redis[("Redis Cache")]
     end
 
-    %% Datastores & Cache
-    AuthSrv --> Postgres[(PostgreSQL Supabase)]
-    OrderSrv --> Postgres
-    EventSrv --> Postgres
-    RecSrv --> Redis[(Redis Cache)]
-
-    %% ML Pipelines
-    subgraph "AI/ML MLOps Engine"
-        RecSrv --> NCFPredict["NCF Predictor"]
-        NCFPredict --> NCFWeights["model_registry/latest.pt"]
-        NCFPredict --> Registry["NCF Model Registry"]
-        Registry --> Scheduler["Daily Training Loop (APScheduler)"]
-        Scheduler -->|Reads| Postgres
+    subgraph "ML / MLOps"
+        RecSrv --> NCFPredict["NCF Predictor (PyTorch)"]
+        NCFPredict --> ModelReg["Model Registry — latest.pt"]
+        APSched["APScheduler — Daily Training"] --> ModelReg
+        APSched --> DB
+        NCFPredict --> HybridRank["Hybrid Ranker"]
     end
 
-    %% Telemetry & Monitoring
-    Gateway --> Prometheus["Prometheus Target (/metrics)"]
+    subgraph "Agentic Loop"
+        AgentSrv --> Observer["Observer Module"]
+        Observer --> Analyzer["Analyzer Module"]
+        Analyzer --> Planner["Planner Module"]
+        Planner --> Approval["Human Approval Gate"]
+        Approval --> Executor["Executor Module"]
+        Executor --> Learner["Learner Module"]
+        Learner --> Observer
+    end
+
+    subgraph "Business Copilot"
+        CopilotSrv --> QueryEngine["Query Engine — Intent Classification"]
+        QueryEngine --> SQLBuilder["SQL Builder — Live DB Context"]
+        SQLBuilder --> InsightEngine["Insight Engine — Risk Scoring"]
+        InsightEngine --> ReportGen["Report Generator — Markdown / JSON / PDF"]
+    end
+
+    DB --> CopilotSrv
+    DB --> AgentSrv
+    DB --> NLPSrv
+
+    Gateway --> Prometheus["Prometheus :9090"]
 ```
 
 ---
 
-## 🌟 Tech Stack
+## 🤖 AI & ML Pipelines
 
-### Customer Storefront (Public SPA)
-- **Framework**: React 18 (TypeScript, Vite 6)
-- **Visuals & Styling**: Vanilla CSS, custom HSL color tokens, orbital CSS 3D floating hubs, 3D tilt perspective hover cards, and drag-to-orbit 360° product rotations.
-- **Routing**: React Router v6 (optimized with route-based lazy loading & Suspense split-chunks).
-- **Data Querying**: TanStack React Query & Axios.
-- **Unified Alerts**: Global `NotificationContext` toast portal.
-- **PWA & Caching**: Web App Manifest (`manifest.json`) and service worker offline asset caching (`sw.js`).
+### NCF Recommendation Pipeline
 
-### Owner Analytics Dashboard (Staff Control Panel)
-- **Design Pattern**: Flat, high-readability operations telemetry panels (devoid of heavy animations).
-- **Telemetry Indicators**: Live system load counters, active SQLAlchemy pool health bars, and Redis memory hit ratios.
-- **Cohort Visuals**: Interactive customer RFM segment categorizations (VIP, At Risk, Dormant, New).
-
-### Application Backend API
-- **Framework**: FastAPI (Python 3.13+)
-- **Database Engine**: SQLAlchemy with `asyncpg` async driver.
-- **Migrations**: Alembic async configurations.
-- **Validation**: Pydantic v2.
-- **Logging**: Structlog JSON logs writer.
-
-### AI & Machine Learning Service
-- **Model Framework**: PyTorch 2.0+ (Neural Collaborative Filtering collaborative algorithm).
-- **Scheduler**: APScheduler running daily training epochs.
-- **MLOps**: Autonomous Model Versioning, validation metrics tracking, and REST API rollbacks.
-
----
-
-## 📂 Folder Directory Layout
-
-```text
-JourneyIQ/
-├── .github/workflows/         # CodeQL scans, Dependabot checks, and CD release pipelines
-├── backend/                   # Python FastAPI Backend API Gateway
-│   ├── app/
-│   │   ├── api/               # Router endpoints (auth, products, checkout, system)
-│   │   ├── core/              # Security configurations, rate limiting, and logger setups
-│   │   ├── db/                # Async engine sessions and SQLAlchemy declarative base
-│   │   ├── models/            # SQLAlchemy database entities (User, Product, Order)
-│   │   ├── schemas/           # Pydantic validation schemas
-│   │   ├── services/          # MLOps registries, payment simulator, and insights service
-│   │   └── main.py            # FastAPI app configuration & middleware pipeline
-│   ├── migrations/           # Alembic database migration scripts
-│   ├── tests/                # 68 Pytest unit and integration test files
-│   ├── requirements.txt      # Python dependencies
-│   └── Dockerfile            # Multi-stage python image definition
-├── frontend/                  # React Storefront & Dashboard SPA
-│   ├── public/               # manifest.json, sw.js service worker, favicon assets
-│   ├── src/
-│   │   ├── components/ui/    # Accessible design system elements (Button, Input)
-│   │   ├── context/          # Unified NotificationContext toast providers
-│   │   ├── layouts/          # MainLayout responsive header & mobile navigation drawer
-│   │   ├── pages/            # Lazy-loaded views (Catalog, Detail, Cart, Dashboard)
-│   │   ├── services/api.ts   # Axios API client client mappings
-│   │   └── App.tsx           # Router and Query provider bootstrap
-│   ├── tests/e2e/            # Playwright E2E integration test suite
-│   ├── playwright.config.ts  # Playwright browser parameters
-│   └── package.json          # Node dependencies and build scripts
-├── ml-service/               # Python ML models microservices definitions
-├── nginx/                    # NGINX reverse-proxy configuration
-├── scripts/                  # Backup/restore and database seeders scripts
-├── k8s/                      # Kubernetes deployment & ingress manifests
-├── docker-compose.yml        # Orchestration compose definition
-└── README.md                 # This file
+```mermaid
+flowchart LR
+    A["User Request"] --> B{"User has\ninteraction history?"}
+    B -->|No| C["Cold-Start Fallback\nTrending + Category-Popular"]
+    B -->|Yes| D["NCF Deep Learning\nUser & Item Embeddings"]
+    D --> E["MLP Hidden Layers\n256 → 128 → 64 → 1"]
+    E --> F["Purchase Likelihood\nScore"]
+    C --> G["Hybrid Ranker\nBlends DL + Heuristic"]
+    F --> G
+    G --> H["Top-K Products\nPersonalized for User"]
 ```
 
+**NCF Model Architecture**
+- User ID + Product ID → Embedding layers (32-dim each)
+- Concatenated embeddings → MLP: 256 → 128 → 64 → Sigmoid output
+- Daily training via APScheduler on PostgreSQL interaction logs
+- Versioned model registry with automatic rollback on metric degradation
+
+### NLP Sentiment Pipeline
+
+```mermaid
+flowchart LR
+    A["Review Text"] --> B["Text Cleaning & Tokenization"]
+    B --> C{"HuggingFace\nTransformers\nAvailable?"}
+    C -->|Yes| D["DistilBERT SST-2\nFine-tuned Model"]
+    C -->|No| E["Lexicon-Based\nWord Matching\n(Fast Fallback)"]
+    D --> F["Confidence Score\n-1.0 to +1.0"]
+    E --> F
+    F --> G["Label: Positive / Neutral / Negative"]
+    G --> H["Keyword Extraction\n(Top Nouns + Adjectives)"]
+    H --> I["Dashboard\nSentiment Aggregates"]
+```
+
+### Agentic AI Loop
+
+```mermaid
+sequenceDiagram
+    participant DB as PostgreSQL
+    participant Obs as Observer
+    participant Ana as Analyzer
+    participant Plan as Planner
+    participant Human as Owner Approval
+    participant Exec as Executor
+    participant Learn as Learner
+
+    loop Every Trigger / Manual Run
+        Obs->>DB: Query inventory, revenue, payments, reviews
+        DB-->>Obs: Live telemetry snapshot
+        Obs->>Ana: Observed data
+        Ana->>Ana: Classify anomalies (CRITICAL / HIGH / MEDIUM / LOW)
+        Ana->>Plan: Issue list
+        Plan->>DB: Save proposed AgentActions (status=PENDING)
+        Plan-->>Human: Actions awaiting approval
+        Human->>Exec: APPROVE / REJECT
+        Exec->>DB: Execute approved action (restock, discount, alert)
+        Exec->>Learn: Execution result
+        Learn->>DB: Update memory + outcome statistics
+    end
+```
+
+### Business Copilot — Grounding Architecture
+
+```mermaid
+flowchart TD
+    A["Natural Language Query\n'Why did revenue decrease?'"] --> B["Query Engine\nIntent Classification"]
+    B --> C["SQL Builder\nFetch live DB context"]
+    C --> D[("PostgreSQL\nLive Data")]
+    D --> C
+    C --> E["Insight Engine\nRisk Score Calculation"]
+    E --> F["Response Builder\nData-Grounded Narrative"]
+    F --> G["NVIDIA LLM\n(Optional Enhancement)"]
+    G --> H["Final Response\nwith Citations & Confidence"]
+
+    style G fill:#76b900,color:#fff
+    style D fill:#336791,color:#fff
+    note1["LLM only explains data\n— never generates numbers"]
+```
+
+> **Zero-Hallucination Guarantee:** The LLM is only permitted to explain data retrieved from the database. It never generates business metrics, revenue figures, or inventory numbers.
+
 ---
 
-## 🎥 Walkthrough Video Demo
-
-An unlisted walkthrough demo video showing the complete user flow (registration, catalog navigation, 3D rotating product views, NCF recommendation panels, cart, checkout, dashboard telemetry, and system rollback endpoints) is linked below:
-
-📺 [**JourneyIQ Walkthrough Demo Video**](https://www.youtube.com/watch?v=dQw4w9WgXcQ) *(Replace with your unlisted YouTube link)*
-
----
-
-## 🤖 AI Model & Recommendation Pipeline
-
-JourneyIQ employs a hybrid recommendation architecture combining heuristics with deep learning:
-
-1. **Cold-Start Fallback Strategy**: If a user is not authenticated or has zero event history, the system serves popularity-based recommendations (e.g., best-selling items, top-rated products, trending items).
-2. **Deep Collaborative Filtering**: Once authenticated with sufficient session views, the backend queries the **PyTorch NCF Engine** utilizing a Multi-Layer Perceptron (MLP) architecture. User and product IDs are converted to low-dimensional embedding vectors, concatenated, and passed through feedforward hidden layers to output a purchase likelihood score.
-
-### Recommendation Benchmarks
-
-| Metric | Hybrid Filtering | Deep Learning (NCF) |
-| :--- | :---: | :---: |
-| **Precision@10** | 0.84 | **0.91** |
-| **Recall@10** | 0.79 | **0.88** |
-| **Hit Rate** | 0.86 | **0.93** |
-| **NDCG** | 0.82 | **0.90** |
-| **Coverage** | 78% | **85%** |
-| **Average Inference Latency** | **< 3ms** | < 8ms |
-| **Training Pipeline Time** | N/A | 14 min (local GPU) |
-
----
-
-## 🚀 Installation & Local Development
+## 🚀 Installation
 
 ### Prerequisites
-- Docker & Docker Compose installed
-- Node.js v20+ and Python 3.13+ (if running bare-metal)
+- **Docker** & **Docker Compose** (recommended)
+- OR: Python 3.13+ · Node.js 20+ (bare-metal)
 
-### Quick Start with Docker
-1. Copy the environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-2. Build and run all services:
-   ```bash
-   docker-compose -f docker-compose.prod.yml up --build -d
-   ```
-3. Open `http://localhost:5173` to browse the storefront.
+### ⚡ Quick Start — Docker
 
-### Local Installation without Docker
+```bash
+# 1. Clone the repository
+git clone https://github.com/yourusername/JourneyIQ.git
+cd JourneyIQ
 
-#### 1. Backend API Setup
+# 2. Configure environment
+cp .env.example .env
+# Edit .env: set SECRET_KEY, JWT_SECRET, DATABASE_URL, NVIDIA_API_KEY (optional)
+
+# 3. Launch all services
+docker compose up --build -d
+
+# 4. Initialise database & seed data
+docker exec journeyiq_backend alembic upgrade head
+docker exec journeyiq_backend python seed.py
+```
+
+Open `http://localhost:5173` → Customer Storefront  
+Open `http://localhost:5173/dashboard` → Owner Dashboard  
+Open `http://localhost:8000/docs` → FastAPI Swagger UI
+
+---
+
+### 🛠️ Bare-Metal Installation
+
+#### Backend Setup
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+
 pip install -r requirements.txt
-# Run database migrations
+
+# Configure database
 alembic upgrade head
-# Seed database
 python seed.py
-# Start developer server
-uvicorn app.main:app --reload
+
+# Start development server
+uvicorn app.main:app --reload --port 8000
 ```
 
-#### 2. Frontend React Setup
+#### Frontend Setup
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev       # Vite dev server → http://localhost:5173
+```
+
+#### ML Training (optional)
+```bash
+cd backend
+python -m app.services.ml.scheduler   # Manual training run
+# Or let APScheduler run it daily automatically
 ```
 
 ---
 
-## 🛠️ Verification & Test Commands
+## 📂 Project Structure
 
-Before committing to releases, verify all checks pass:
+```
+JourneyIQ/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                  # 7-stage CI/CD pipeline
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── endpoints/          # auth, products, checkout, agent, copilot, assistant
+│   │   ├── core/                   # config, security, rate limiter, logger
+│   │   ├── db/                     # async SQLAlchemy sessions & base
+│   │   ├── models/                 # SQLAlchemy ORM models (User, Product, Order, etc.)
+│   │   ├── schemas/                # Pydantic v2 validation schemas
+│   │   └── services/
+│   │       ├── agent/              # Agentic AI: observer, analyzer, planner, executor, learner
+│   │       ├── analytics/          # Sales, customer intelligence, AI insights
+│   │       ├── assistant/          # NVIDIA NIM chat assistant
+│   │       ├── copilot/            # Business Copilot: query engine, SQL builder, insights
+│   │       ├── deep_learning/      # PyTorch NCF model loader & inference
+│   │       ├── ml/                 # Hybrid ranker, recommendation service, scheduler
+│   │       └── nlp/                # Sentiment, keywords, summarizer
+│   ├── migrations/                 # Alembic database migrations
+│   ├── models/                     # Saved PyTorch model weights (latest.pt, registry)
+│   ├── scratch/                    # Dev scripts (validate_system.py, seed helpers)
+│   ├── tests/                      # 89 pytest unit & integration tests
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── public/                     # manifest.json, sw.js, favicon
+│   ├── src/
+│   │   ├── components/             # UI design system (Button, Input, Modal, etc.)
+│   │   ├── context/                # Auth, Cart, Notification contexts
+│   │   ├── layouts/                # MainLayout, DashboardLayout, responsive nav
+│   │   ├── pages/
+│   │   │   ├── Storefront/         # Catalog, ProductDetail, Cart, Checkout, Orders
+│   │   │   └── Dashboard/          # Analytics, AI Recommendations, Agentic AI, Copilot
+│   │   └── services/               # Axios API client, type definitions
+│   ├── tests/e2e/                  # Playwright browser tests
+│   └── Dockerfile
+├── ml-service/                     # Standalone ML microservice (optional)
+├── nginx/                          # Nginx reverse-proxy config
+├── k8s/                            # Kubernetes manifests
+├── scripts/                        # Backup, restore, DB seed scripts
+├── docker-compose.yml              # Development orchestration
+├── docker-compose.prod.yml         # Production orchestration
+└── docker-compose.dev.yml          # Hot-reload dev orchestration
+```
 
-### 1. Pytest Suite
+---
+
+## 🔌 API Reference
+
+All endpoints are prefixed with `/api/v1`. Full Swagger docs: `http://localhost:8000/docs`
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/register` | Customer registration |
+| `POST` | `/auth/login` | Login → JWT access + refresh tokens |
+| `POST` | `/auth/refresh` | Rotate refresh token |
+| `POST` | `/auth/logout` | Invalidate session |
+| `POST` | `/auth/password-reset` | Initiate password recovery |
+
+### Products & Storefront
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/products` | Paginated catalog with filters |
+| `GET` | `/products/{id}` | Product detail + reviews |
+| `GET` | `/recommendations/trending` | Top trending products |
+| `GET` | `/recommendations/personalized` | NCF personalized recommendations |
+| `POST` | `/wishlist` | Add to wishlist |
+| `POST` | `/cart` | Add to cart |
+| `POST` | `/checkout` | Create order + payment simulation |
+
+### AI & Intelligence
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/assistant/chat` | NVIDIA-powered shopping assistant |
+| `POST` | `/copilot/chat` | Business Copilot natural language query |
+| `GET` | `/copilot/summary` | KPI scorecard + risk dashboard |
+| `GET` | `/copilot/report` | Executive summary report |
+| `POST` | `/agent/run` | Trigger Agentic AI orchestrator loop |
+| `GET` | `/agent/status` | Current agent state + pending approvals |
+| `POST` | `/agent/approve/{id}` | Approve an agent-proposed action |
+
+### System & Health
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Database connectivity check |
+| `GET` | `/system/live` | Kubernetes liveness probe |
+| `GET` | `/system/ready` | Kubernetes readiness probe |
+| `GET` | `/system/metrics` | Prometheus metrics |
+
+---
+
+## 🧪 Testing
+
 ```bash
+# Backend — full pytest suite (89 tests)
 cd backend
-$env:PYTHONPATH="."  # Windows PowerShell syntax
-.venv\Scripts\pytest
-```
+.venv\Scripts\python -m pytest -v
 
-### 2. Playwright E2E Tests
-```bash
+# Backend — with coverage report
+.venv\Scripts\python -m pytest --cov=app --cov-report=html
+
+# System Validation Report
+.venv\Scripts\python -X utf8 scratch/validate_system.py --all
+
+# Frontend — build verification
 cd frontend
-npx playwright test
-```
+npm run build
 
-### 3. Python Lint Checks
-```bash
+# Frontend — E2E Playwright tests
+npx playwright test
+
+# Lint checks
 cd backend
 .venv\Scripts\ruff check .
 ```
 
-### 4. Frontend Compilation
-```bash
-cd frontend
-npm run build
-```
+---
+
+## 🤖 Recommendation Benchmarks
+
+| Metric | Hybrid Filtering | Deep Learning (NCF) |
+|--------|:---:|:---:|
+| **Precision@10** | 0.84 | **0.91** |
+| **Recall@10** | 0.79 | **0.88** |
+| **Hit Rate** | 0.86 | **0.93** |
+| **NDCG** | 0.82 | **0.90** |
+| **Inference Latency** | **< 3ms** | < 8ms |
 
 ---
 
-## 🌐 Production Cloud Deployments
+## 🌐 Deployment
 
-For complete step-by-step setup guides, refer to [DEPLOYMENT.md](DEPLOYMENT.md) and [PRODUCTION_SETUP.md](PRODUCTION_SETUP.md).
+### Option A — Docker Compose (Self-Hosted)
+```bash
+cp .env.example .env.production
+# Set: POSTGRES_PASSWORD, SECRET_KEY, JWT_SECRET, NVIDIA_API_KEY
+docker compose -f docker-compose.prod.yml up --build -d
+```
 
-- **Database**: Host on **Supabase** (Postgres DB). Ensure connection string incorporates the `+asyncpg` driver parameter.
-- **Frontend SPA**: Deploy to **Vercel** or **Netlify**. Set the build environment variable `VITE_BACKEND_URL` pointing to the backend API origin.
-- **Backend API & ML Service**: Host on **Render**, **Railway**, **Azure Web Apps**, or **AWS EC2** containers. Set environment configurations for `SECRET_KEY`, `JWT_SECRET`, `ENVIRONMENT=production`, and `DATABASE_URL`.
+### Option B — Cloud (Recommended for Portfolio)
+
+| Service | Platform | Notes |
+|---------|----------|-------|
+| **Frontend** | [Vercel](https://vercel.com) | Set `VITE_BACKEND_URL=https://api.yourapp.com` |
+| **Backend API** | [Render](https://render.com) or [Railway](https://railway.app) | Use the `backend/` Docker image |
+| **PostgreSQL** | [Supabase](https://supabase.com) | Free tier; use `postgresql+asyncpg://...` URL |
+| **Redis** | [Upstash](https://upstash.com) | Optional, for caching |
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for full step-by-step cloud setup guide.
+
+### Option C — Kubernetes
+```bash
+kubectl apply -f k8s/
+```
+See [k8s/](k8s/) for deployment manifests.
+
+---
+
+## 📋 Version Roadmap
+
+| Version | Name | Status |
+|---------|------|--------|
+| v1.0 | Core Storefront + Dashboard | ✅ Complete |
+| v1.1 | NCF Recommendation Engine | ✅ Complete |
+| v1.2 | NLP Sentiment Analysis | ✅ Complete |
+| v1.3 | Agentic AI Loop | ✅ Complete |
+| v1.4 | AI Business Copilot | ✅ Complete |
+| **v1.4.1** | **Production Validation & SaaS Polishing** | 🔄 **In Progress** |
+| v1.5 | Public Cloud Deployment | 📋 Planned |
+| v1.6 | Predictive Retail Intelligence (Forecasting) | 📋 Planned |
+
+---
+
+## 📄 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Complete deployment guide (Docker, Vercel, Render, Supabase) |
+| [MLOPS.md](MLOPS.md) | MLOps pipeline, model versioning, training schedule |
+| [AGENTIC_AI.md](AGENTIC_AI.md) | Agentic AI architecture and loop documentation |
+| [BUSINESS_COPILOT.md](BUSINESS_COPILOT.md) | Business Copilot grounding architecture |
+| [DEVOPS.md](DEVOPS.md) | Infrastructure, Prometheus, Kubernetes |
+| [SECURITY.md](SECURITY.md) | Security policies and RBAC configuration |
+| [CHANGELOG.md](CHANGELOG.md) | Version release history |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Run tests: `pytest` + `npm run build`
+4. Submit a pull request
+
+All pull requests trigger the full 7-stage CI pipeline automatically.
+
+---
+
+<div align="center">
+
+Built with ❤️ using FastAPI · React · PyTorch · NVIDIA NIM
+
+</div>

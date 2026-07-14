@@ -35,6 +35,8 @@ import {
   Line,
 } from 'recharts';
 import { apiClient, assistantApi, generativeApi, agentApi } from '../services/api';
+import { BusinessCopilot } from './BusinessCopilot';
+
 export const Dashboard: React.FC = () => {
   const { tab = 'overview' } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
@@ -153,7 +155,7 @@ export const Dashboard: React.FC = () => {
       return await agentApi.getStatus();
     },
     enabled: activeTab === 'agent',
-    refetchInterval: activeTab === 'agent' ? 5000 : false
+    refetchInterval: activeTab === 'agent' ? 30000 : false
   });
 
   // Actions
@@ -244,7 +246,7 @@ export const Dashboard: React.FC = () => {
   const [generatingImage, setGeneratingImage] = useState(false);
 
   // Agent approvals loading states
-  const [processingAction, setProcessingAction] = useState<string | null>(null);
+  const [processingAction, setProcessingAction] = useState<number | null>(null);
   const [visualAgentState, setVisualAgentState] = useState<string | null>(null);
 
   useEffect(() => {
@@ -390,7 +392,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleApproveAction = async (actionId: string) => {
+  const handleApproveAction = async (actionId: number) => {
     try {
       setProcessingAction(actionId);
       setVisualAgentState('executing');
@@ -404,7 +406,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleRejectAction = async (actionId: string) => {
+  const handleRejectAction = async (actionId: number) => {
     try {
       setProcessingAction(actionId);
       await agentApi.rejectAction(actionId);
@@ -414,6 +416,20 @@ export const Dashboard: React.FC = () => {
       alert('Failed to reject action.');
     } finally {
       setProcessingAction(null);
+    }
+  };
+
+  const [runningLoop, setRunningLoop] = useState(false);
+  const handleTriggerRun = async () => {
+    try {
+      setRunningLoop(true);
+      await agentApi.triggerRun();
+      await refetchAgentStatus();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to trigger agent run.');
+    } finally {
+      setRunningLoop(false);
     }
   };
 
@@ -433,6 +449,7 @@ export const Dashboard: React.FC = () => {
     { key: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
     { key: 'insights', label: 'AI Insights', icon: <Sparkles className="h-4 w-4" /> },
     { key: 'models', label: 'Model Performance', icon: <Activity className="h-4 w-4" /> },
+    { key: 'copilot', label: 'Business Copilot', icon: <Sparkles className="h-4 w-4" /> },
   ];
 
   return (
@@ -1551,13 +1568,29 @@ export const Dashboard: React.FC = () => {
 
               {/* Agentic AI Tab */}
               {activeTab === 'agent' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="rounded-lg border border-slate-800 bg-[#111827] p-6 space-y-1">
-                    <h3 className="text-xl font-bold text-white">Autonomous Agentic AI Orchestrator</h3>
-                    <p className="text-xs text-slate-450 mt-0.5">Real-time perception findings, plans evaluation, and human-in-the-loop safety constraints approvals.</p>
+                <div className="space-y-6 animate-fade-in text-slate-200">
+                  <div className="rounded-lg border border-slate-800 bg-[#111827] p-6 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">Autonomous Agentic AI Orchestrator</h3>
+                      <p className="text-xs text-slate-450 mt-0.5">Real-time perception findings, plans evaluation, and human-in-the-loop safety constraints approvals.</p>
+                    </div>
+                    <button
+                      onClick={handleTriggerRun}
+                      disabled={runningLoop || processingAction !== null}
+                      className="rounded bg-indigo-650 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {runningLoop ? (
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
+                          Running Loop...
+                        </>
+                      ) : (
+                        'Trigger Autonomous Run'
+                      )}
+                    </button>
                   </div>
 
-                  {/* Visual Agentic Flow Stages */}
+                  {/* Stage Monitor */}
                   <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
                     <h4 className="font-bold text-white text-sm">Visual Agent Execution Loop</h4>
                     <div className="grid grid-cols-6 gap-2 text-center text-[10px] font-extrabold uppercase select-none">
@@ -1582,46 +1615,123 @@ export const Dashboard: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Decision KPI Scorecard */}
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-4 text-center">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase block mb-1">Total Actions</span>
+                      <div className="text-xl font-black text-white">{agentStatus?.memory_statistics?.total_decisions || 0}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-4 text-center">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase block mb-1">Executed</span>
+                      <div className="text-xl font-black text-emerald-400">{agentStatus?.memory_statistics?.completed_actions || 0}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-4 text-center">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase block mb-1">Failed</span>
+                      <div className="text-xl font-black text-rose-500">{agentStatus?.memory_statistics?.failed_actions || 0}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-4 text-center">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase block mb-1">Pending</span>
+                      <div className="text-xl font-black text-indigo-400">{agentStatus?.memory_statistics?.pending_actions || 0}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-4 text-center">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase block mb-1">Avg Confidence</span>
+                      <div className="text-xl font-black text-white">{agentStatus?.memory_statistics?.average_confidence || 90}%</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-[#111827] p-4 text-center">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase block mb-1">Average ROI</span>
+                      <div className="text-xl font-black text-emerald-400">+{agentStatus?.learning_statistics?.average_roi || 0}%</div>
+                    </div>
+                  </div>
+
+                  {/* Observe statistics grid */}
+                  <div className="rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
+                    <h4 className="font-bold text-white text-sm">Observe telemetry scan data</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-semibold">
+                      <div className="p-3 bg-slate-900/60 rounded border border-slate-850">
+                        <span className="text-[9px] text-slate-500 block mb-0.5">Page views count</span>
+                        <span className="text-white font-extrabold">{agentStatus?.observations?.events?.total_page_views || 0} views</span>
+                      </div>
+                      <div className="p-3 bg-slate-900/60 rounded border border-slate-850">
+                        <span className="text-[9px] text-slate-500 block mb-0.5">Chat usage count</span>
+                        <span className="text-white font-extrabold">{agentStatus?.observations?.events?.chat_queries_today || 0} queries</span>
+                      </div>
+                      <div className="p-3 bg-slate-900/60 rounded border border-slate-850">
+                        <span className="text-[9px] text-slate-500 block mb-0.5">Abandoned Carts</span>
+                        <span className="text-white font-extrabold">{agentStatus?.observations?.cart?.abandoned_carts_count || 0} carts</span>
+                      </div>
+                      <div className="p-3 bg-slate-900/60 rounded border border-slate-850">
+                        <span className="text-[9px] text-slate-500 block mb-0.5">Failed Payments</span>
+                        <span className="text-rose-450 font-extrabold">{agentStatus?.observations?.payments?.failed_payments_today || 0} ({agentStatus?.observations?.payments?.payment_failure_rate || 0.0}%)</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {/* Pending Approvals Safety Queue */}
+                    {/* Grouped approvals plans */}
                     <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-[#111827] p-5 space-y-4">
-                      <h4 className="font-bold text-white text-sm">Safety Approvals Buffer Queue</h4>
+                      <h4 className="font-bold text-white text-sm">Proposed Plan Alternatives Safety Queue</h4>
                       <div className="space-y-4 divide-y divide-slate-850">
                         {agentStatus?.pending_approvals?.length === 0 ? (
-                          <div className="text-xs text-slate-400 py-6 text-center">No pending sensitive actions awaiting approval.</div>
+                          <div className="text-xs text-slate-400 py-6 text-center">No pending sensitive actions awaiting approval. Run scheduler or trigger manually.</div>
                         ) : (
-                          agentStatus?.pending_approvals?.map((act: any) => (
-                            <div key={act.id} className="pt-4 first:pt-0 space-y-3">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h5 className="text-xs font-bold text-white">{act.title}</h5>
-                                  <span className="text-[10px] text-indigo-400 font-semibold">{act.target_segment}</span>
+                          Object.keys(
+                            agentStatus?.pending_approvals?.reduce((acc: any, act: any) => {
+                              if (!acc[act.source_issue]) {
+                                acc[act.source_issue] = [];
+                              }
+                              acc[act.source_issue].push(act);
+                              return acc;
+                            }, {}) || {}
+                          ).map((sourceIssue: string) => {
+                            const plans = (agentStatus?.pending_approvals as any[]).filter(p => p.source_issue === sourceIssue);
+                            const firstPlan = plans[0];
+                            return (
+                              <div key={sourceIssue} className="pt-4 first:pt-0 space-y-3">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <span className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-2 py-0.5 text-[9px] font-black uppercase rounded block w-fit mb-1">
+                                      Issue detected: {firstPlan.source_issue.split('-')[0]}
+                                    </span>
+                                    <h5 className="text-xs font-bold text-white">Source ID: {firstPlan.source_issue}</h5>
+                                  </div>
                                 </div>
-                                <span className="bg-rose-500/10 border border-rose-500/20 text-rose-450 px-2 py-0.5 text-[9px] font-black uppercase rounded">
-                                  Requires Approval
-                                </span>
+                                <p className="text-xs text-slate-450 leading-relaxed font-semibold italic bg-slate-900 p-2.5 rounded">
+                                  Reasoning context: {firstPlan.reasoning || 'Evaluating model anomalies.'}
+                                </p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                                  {plans.map((plan: any) => (
+                                    <div key={plan.id} className="p-3 rounded border border-slate-850 bg-slate-950 flex flex-col justify-between space-y-2">
+                                      <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                          <span className="text-[10px] text-indigo-400 font-extrabold uppercase">{plan.action_type}</span>
+                                          <span className="text-[9px] text-emerald-450 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded">Conf: {(plan.confidence * 100).toFixed(0)}%</span>
+                                        </div>
+                                        <h6 className="text-xs font-bold text-white">{plan.title}</h6>
+                                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">{plan.description}</p>
+                                      </div>
+                                      <div className="flex gap-2 justify-end pt-2 border-t border-slate-850">
+                                        <button
+                                          onClick={() => handleRejectAction(plan.id)}
+                                          disabled={processingAction !== null}
+                                          className="rounded bg-slate-850 px-2 py-1 text-[10px] font-bold text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+                                        >
+                                          Reject
+                                        </button>
+                                        <button
+                                          onClick={() => handleApproveAction(plan.id)}
+                                          disabled={processingAction !== null}
+                                          className="rounded bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-emerald-750 disabled:opacity-50"
+                                        >
+                                          {processingAction === plan.id ? 'Running...' : 'Approve'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                              <p className="text-xs text-slate-350 leading-relaxed font-medium">{act.description}</p>
-                              <div className="text-xs text-emerald-450 font-bold"><span className="text-slate-400">Impact Lift:</span> {act.impact}</div>
-                              
-                              <div className="flex gap-2 justify-end pt-1">
-                                <button
-                                  onClick={() => handleRejectAction(act.id)}
-                                  disabled={processingAction === act.id}
-                                  className="rounded bg-slate-850 px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-slate-800 disabled:opacity-50"
-                                >
-                                  Reject Plan
-                                </button>
-                                <button
-                                  onClick={() => handleApproveAction(act.id)}
-                                  disabled={processingAction === act.id}
-                                  className="rounded bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
-                                >
-                                  {processingAction === act.id ? 'Approving...' : 'Approve & Execute'}
-                                </button>
-                              </div>
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -1636,14 +1746,14 @@ export const Dashboard: React.FC = () => {
                             <div className="text-lg font-bold text-emerald-400">+{agentStatus?.learning_statistics?.conversion_lift_pct}%</div>
                           </div>
                           <div className="rounded border border-slate-850 bg-slate-900/60 p-3 text-center">
-                            <span className="text-3xs font-extrabold text-slate-500 uppercase block mb-1">Revenue Lift</span>
+                            <span className="text-3xs font-extrabold text-slate-500 uppercase block mb-1">Revenue Recovered</span>
                             <div className="text-lg font-bold text-white">₹{agentStatus?.learning_statistics?.recovered_revenue}</div>
                           </div>
                         </div>
 
                         <div className="space-y-2">
                           <span className="text-3xs font-extrabold text-slate-500 uppercase tracking-wider block">Learning Outcomes</span>
-                          <p className="text-xs text-slate-300 leading-relaxed font-medium whitespace-normal bg-slate-950 p-3 rounded">
+                          <p className="text-xs text-slate-350 leading-relaxed font-semibold whitespace-normal bg-slate-950 p-3 rounded">
                             {agentStatus?.learning_statistics?.learnings_summary}
                           </p>
                         </div>
@@ -1767,7 +1877,11 @@ export const Dashboard: React.FC = () => {
                               <td className="py-2.5 font-bold text-white">{hist.action}</td>
                               <td className="py-2.5 text-slate-400">{hist.timestamp}</td>
                               <td className="py-2.5">
-                                <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[9px] font-bold">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                                  hist.status === 'COMPLETED' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' :
+                                  hist.status === 'REJECTED' ? 'bg-slate-800 border border-slate-800 text-slate-400' :
+                                  'bg-rose-500/10 border border-rose-500/20 text-rose-450'
+                                }`}>
                                   {hist.status}
                                 </span>
                               </td>
@@ -1779,6 +1893,10 @@ export const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              )}
+
+              {activeTab === 'copilot' && (
+                <BusinessCopilot onDrillDown={(targetTab) => navigate(`/dashboard/${targetTab}`)} />
               )}
             </>
           )}

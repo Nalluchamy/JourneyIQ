@@ -54,12 +54,58 @@ test.describe('JourneyIQ v1.0.0 End-to-End Suite', () => {
     await page.goto('/dashboard/overview');
     
     // Check navigation tab clicks
-    const tabs = ['telemetry', 'customers', 'settings', 'models'];
+    const tabs = ['telemetry', 'customers', 'settings', 'models', 'agent'];
     for (const tab of tabs) {
       const tabLink = page.locator(`a[href="/dashboard/${tab}"]`);
       if (await tabLink.isVisible()) {
         await tabLink.click();
         await expect(page).toHaveURL(new RegExp(`/dashboard/${tab}`));
+      }
+    }
+  });
+
+  test('Autonomous Agentic AI Dashboard Loop Integration', async ({ page }) => {
+    // Navigate to dashboard
+    await page.goto('/dashboard');
+    
+    // Check if Agentic AI sidebar button exists and click it
+    const agentTabBtn = page.locator('button:has-text("Agentic AI")');
+    if (await agentTabBtn.isVisible()) {
+      await agentTabBtn.click();
+      
+      // Verify visual execution flow and metrics sections
+      await expect(page.locator('h3:has-text("Autonomous Agentic AI Orchestrator")')).toBeVisible();
+      await expect(page.locator('h4:has-text("Visual Agent Execution Loop")')).toBeVisible();
+      await expect(page.locator('h4:has-text("Observe telemetry scan data")')).toBeVisible();
+      
+      // Check for manual loop run action
+      const triggerBtn = page.locator('button:has-text("Trigger Autonomous Run")');
+      if (await triggerBtn.isEnabled()) {
+        await triggerBtn.click();
+        await page.waitForTimeout(1000);
+      }
+    }
+  });
+
+  test('AI Business Copilot Dashboard Tab Integration', async ({ page }) => {
+    // Navigate to dashboard
+    await page.goto('/dashboard');
+    
+    // Check if Business Copilot sidebar button exists and click it
+    const copilotTabBtn = page.locator('button:has-text("Business Copilot")');
+    if (await copilotTabBtn.isVisible()) {
+      await copilotTabBtn.click();
+      
+      // Verify workspace views
+      await expect(page.locator('h3:has-text("AI Business Copilot Workspace")')).toBeVisible();
+      await expect(page.locator('h4:has-text("AI Business Copilot Chat")')).toBeVisible();
+      await expect(page.locator('h4:has-text("Executive Performance Reports")')).toBeVisible();
+      
+      // Select report formats and click Generate Report
+      const generateReportBtn = page.locator('button:has-text("Generate Report")');
+      if (await generateReportBtn.isVisible()) {
+        await generateReportBtn.click();
+        await page.waitForTimeout(500);
       }
     }
   });
