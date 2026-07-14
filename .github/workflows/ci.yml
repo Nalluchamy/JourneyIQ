@@ -335,13 +335,13 @@ jobs:
           fetch-depth: 0
 
       - name: Download Frontend Build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: frontend-dist
           path: frontend-dist
 
       - name: Download Validation Reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: validation-reports
           path: validation-reports
