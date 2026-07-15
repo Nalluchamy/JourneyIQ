@@ -118,6 +118,9 @@ async def run_hourly_metrics_logger() -> None:
 
 
 async def _run_scheduler_loops() -> None:
+    # Initial delay to allow the server to boot and accept requests
+    # before starting heavy ML background tasks (prevents Render OOM on startup)
+    await asyncio.sleep(60)
     await asyncio.gather(
         run_daily_pipeline(),
         run_hourly_metrics_logger()
