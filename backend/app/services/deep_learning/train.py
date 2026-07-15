@@ -23,7 +23,7 @@ MODEL_DIR = os.path.abspath(
 
 async def train_ncf_model(
     db: AsyncSession,
-    epochs: int = 50,
+    epochs: int = 3,
     batch_size: int = 64,
     embedding_dim: int = 32,
     layers: list[int] | None = None,
