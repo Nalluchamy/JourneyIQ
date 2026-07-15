@@ -29,7 +29,7 @@ class ObserverModule:
         Queries all tables and logs dynamically to compile business status.
         """
         now = datetime.datetime.now(datetime.timezone.utc)
-        if now.tzinfo:
+        if self.db.get_bind().dialect.name == "sqlite" and now.tzinfo:
             now = now.replace(tzinfo=None)
         one_day_ago = now - datetime.timedelta(days=1)
         two_days_ago = now - datetime.timedelta(days=2)
