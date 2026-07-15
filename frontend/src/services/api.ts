@@ -19,7 +19,7 @@ export const getOrCreateSessionId = (): string => {
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000, // 10 seconds timeout
+  timeout: 60000, // 60 seconds timeout (accommodates Render free-tier cold starts)
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
