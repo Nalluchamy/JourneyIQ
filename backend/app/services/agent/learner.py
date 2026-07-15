@@ -23,7 +23,7 @@ class LearnerModule:
             return None
 
         exec_time = action.executed_at
-        if self.db.bind.dialect.name == "sqlite" and exec_time.tzinfo:
+        if self.db.get_bind().dialect.name == "sqlite" and exec_time.tzinfo:
             exec_time = exec_time.replace(tzinfo=None)
         one_day = datetime.timedelta(days=1)
         before_start = exec_time - one_day

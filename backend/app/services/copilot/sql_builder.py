@@ -21,7 +21,7 @@ class CopilotSqlBuilder:
     async def get_revenue_timeline(self, days: int = 7) -> list[dict[str, Any]]:
         """Fetch daily revenue summaries over the last N days."""
         now = datetime.datetime.utcnow()
-        if self.db.bind.dialect.name == "sqlite":
+        if self.db.get_bind().dialect.name == "sqlite":
             now = now.replace(tzinfo=None)
         start_date = now - datetime.timedelta(days=days)
 
@@ -99,7 +99,7 @@ class CopilotSqlBuilder:
     async def get_payment_failures(self) -> dict[str, Any]:
         """Calculate recent checkout payment failures and failure rate percentage."""
         now = datetime.datetime.utcnow()
-        if self.db.bind.dialect.name == "sqlite":
+        if self.db.get_bind().dialect.name == "sqlite":
             now = now.replace(tzinfo=None)
         one_day_ago = now - datetime.timedelta(days=1)
 
@@ -122,7 +122,7 @@ class CopilotSqlBuilder:
     async def get_abandoned_carts_count(self) -> int:
         """Fetch count of shopping carts abandoned (inactive for > 2 hours)."""
         now = datetime.datetime.utcnow()
-        if self.db.bind.dialect.name == "sqlite":
+        if self.db.get_bind().dialect.name == "sqlite":
             now = now.replace(tzinfo=None)
         two_hours_ago = now - datetime.timedelta(hours=2)
 

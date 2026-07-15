@@ -244,7 +244,7 @@ async def get_database(db: AsyncSession = Depends(get_db)) -> Any:
     db_size_bytes = 0
     try:
         # Check dialect
-        if "sqlite" in str(db.bind.url):
+        if "sqlite" in str(db.get_bind().url):
             # SQLite specific queries
             db_size_res = await db.execute(text("PRAGMA page_count;"))
             page_count = db_size_res.scalar() or 0
