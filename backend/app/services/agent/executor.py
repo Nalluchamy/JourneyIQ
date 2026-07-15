@@ -103,3 +103,6 @@ class ExecutorModule:
             action.execution_time_ms = int((end_perf - start_perf) * 1000)
 
             await self.db.commit()
+            # Refresh to resolve server-side func.now() SQL expressions
+            # into real Python datetime values for the learner module
+            await self.db.refresh(action)
