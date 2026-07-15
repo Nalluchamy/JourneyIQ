@@ -41,8 +41,8 @@ class RequestTimeoutMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         request_id = getattr(request.state, "request_id", "unknown")
         try:
-            # A 30.0 second timeout limit
-            response = await asyncio.wait_for(call_next(request), timeout=30.0)
+            # A 90.0 second timeout limit for heavy agentic tasks
+            response = await asyncio.wait_for(call_next(request), timeout=90.0)
             return response
         except TimeoutError:
             logger.error("Request execution timed out", path=request.url.path, request_id=request_id)
@@ -51,7 +51,7 @@ class RequestTimeoutMiddleware(BaseHTTPMiddleware):
                 content={
                     "success": False,
                     "error": "GatewayTimeout",
-                    "message": "The request timed out (limit is 30 seconds).",
+                    "message": "The request timed out (limit is 90 seconds).",
                     "request_id": request_id
                 }
             )
