@@ -8,8 +8,6 @@ from app.models.event import Event
 from app.models.order import Order
 from app.models.segment import Segment
 from app.models.user import User
-from app.services.ml.kmeans_segmentation import KMeansSegmenter
-
 
 class CustomerIntelligenceService:
     """Computes customer intelligence metrics: RFM Analysis, ML K-Means Segments, Churn risk, and CLV."""
@@ -76,9 +74,11 @@ class CustomerIntelligenceService:
 
         # 2. Run K-Means Clustering if we have enough users
         user_segments = {}
-        segmenter = KMeansSegmenter(n_clusters=4)
         if len(rfm_data) >= 4:
             try:
+                # Lazy import to avoid OOM on server boot
+                from app.services.ml.kmeans_segmentation import KMeansSegmenter
+                segmenter = KMeansSegmenter(n_clusters=4)
                 user_segments = segmenter.cluster_users(rfm_data)
             except Exception as e:
                 import structlog
