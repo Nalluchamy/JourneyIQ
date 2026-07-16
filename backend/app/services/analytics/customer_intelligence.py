@@ -8,18 +8,19 @@ from app.models.event import Event
 from app.models.order import Order
 from app.models.segment import Segment
 from app.models.user import User
+from app.services.ml.kmeans_segmentation import KMeansSegmenter
 
 
 class CustomerIntelligenceService:
-    """Computes customer intelligence metrics: RFM Analysis, Segment updates, Churn risk, and CLV."""
+    """Computes customer intelligence metrics: RFM Analysis, ML K-Means Segments, Churn risk, and CLV."""
 
     def __init__(self, db: AsyncSession):
         self.db = db
 
     async def calculate_rfm_and_segmentation(self) -> list[dict[str, Any]]:
         """
-        Calculate RFM metrics, update the Segments table, and return a dictionary of customer states.
-        Segments: New, Loyal, Big Spender, Frequent Buyer, Window Shopper, At-Risk, Lost.
+        Calculate RFM metrics, run dynamic K-Means Clustering for segmentation, update the Segments table, 
+        and return a dictionary of customer states.
         """
         # Fetch all customers
         users_stmt = select(User).where(User.is_deleted == False, User.role == "customer")
@@ -41,81 +42,94 @@ class CustomerIntelligenceService:
         # Wipe existing segments to rewrite
         await self.db.execute(delete(Segment))
 
+        # 1. Collect RFM Data for all users
+        rfm_data = []
+        user_metrics_map = {}
+
         for user in users:
             orders_list = user_orders.get(user.id, [])
             total_spend = sum(float(o.total) for o in orders_list)
             order_count = len(orders_list)
 
-            # 1. Recency
+            # Recency
             recency_days = 999
             if orders_list:
-                # Find latest order
                 latest_order = max(orders_list, key=lambda o: o.created_at)
-                # handle timezone awareness
                 created_at = latest_order.created_at
                 if created_at.tzinfo is None:
                     created_at = created_at.replace(tzinfo=datetime.UTC)
                 recency_days = (now - created_at).days
 
-            # 2. RFM Scores (1-5 scales)
+            rfm_data.append({
+                "user_id": user.id,
+                "recency": recency_days,
+                "frequency": order_count,
+                "monetary": total_spend
+            })
+
+            user_metrics_map[user.id] = {
+                "user": user,
+                "recency_days": recency_days,
+                "order_count": order_count,
+                "total_spend": total_spend
+            }
+
+        # 2. Run K-Means Clustering if we have enough users
+        user_segments = {}
+        segmenter = KMeansSegmenter(n_clusters=4)
+        if len(rfm_data) >= 4:
+            try:
+                user_segments = segmenter.cluster_users(rfm_data)
+            except Exception as e:
+                import structlog
+                logger = structlog.get_logger()
+                logger.error("K-Means clustering failed, falling back to rules.", error=str(e))
+
+        # 3. Final Evaluation Loop
+        for metrics in rfm_data:
+            u_id = metrics["user_id"]
+            user = user_metrics_map[u_id]["user"]
+            recency_days = user_metrics_map[u_id]["recency_days"]
+            order_count = user_metrics_map[u_id]["order_count"]
+            total_spend = user_metrics_map[u_id]["total_spend"]
+
+            # RFM Scores (1-5 scales for display)
             r_score = 1
-            if recency_days <= 7:
-                r_score = 5
-            elif recency_days <= 30:
-                r_score = 4
-            elif recency_days <= 60:
-                r_score = 3
-            elif recency_days <= 90:
-                r_score = 2
+            if recency_days <= 7: r_score = 5
+            elif recency_days <= 30: r_score = 4
+            elif recency_days <= 60: r_score = 3
+            elif recency_days <= 90: r_score = 2
 
             f_score = 1
-            if order_count >= 10:
-                f_score = 5
-            elif order_count >= 5:
-                f_score = 4
-            elif order_count >= 3:
-                f_score = 3
-            elif order_count >= 1:
-                f_score = 2
+            if order_count >= 10: f_score = 5
+            elif order_count >= 5: f_score = 4
+            elif order_count >= 3: f_score = 3
+            elif order_count >= 1: f_score = 2
 
             m_score = 1
-            if total_spend >= 1000:
-                m_score = 5
-            elif total_spend >= 500:
-                m_score = 4
-            elif total_spend >= 200:
-                m_score = 3
-            elif total_spend > 0:
-                m_score = 2
+            if total_spend >= 1000: m_score = 5
+            elif total_spend >= 500: m_score = 4
+            elif total_spend >= 200: m_score = 3
+            elif total_spend > 0: m_score = 2
 
-            # Human-readable labels
             recency_label = "Very Recent" if r_score == 5 else ("Recent" if r_score == 4 else ("Moderate" if r_score == 3 else ("Stale" if r_score == 2 else "Inactive")))
             frequency_label = "Frequent" if f_score == 5 else ("Regular" if f_score >= 3 else ("Occasional" if f_score == 2 else "Inactive"))
             monetary_label = "High Spender" if m_score == 5 else ("Medium Spender" if m_score >= 3 else ("Low Spender" if m_score == 2 else "Non-Spender"))
 
-            # Determine Segment Class
-            segment_name = "Window Shoppers"
-            confidence = 1.0
-
-            if order_count == 0:
-                segment_name = "Window Shoppers"
-            elif order_count == 1 and r_score >= 4:
-                segment_name = "New Customers"
-            elif f_score >= 4 and r_score >= 4:
-                segment_name = "Loyal Customers"
-            elif m_score >= 4:
-                segment_name = "Big Spenders"
-            elif f_score >= 4:
-                segment_name = "Frequent Buyers"
-            elif r_score == 1:
-                segment_name = "Lost Customers"
-            elif r_score <= 3:
-                segment_name = "At-Risk Customers"
-            else:
-                segment_name = "New Customers"
+            # Assign Dynamic K-Means Segment or Fallback to Rules
+            segment_name = user_segments.get(u_id)
+            if not segment_name:
+                if order_count == 0: segment_name = "Window Shoppers"
+                elif order_count == 1 and r_score >= 4: segment_name = "New Customers"
+                elif f_score >= 4 and r_score >= 4: segment_name = "Loyal Customers"
+                elif m_score >= 4: segment_name = "Big Spenders"
+                elif f_score >= 4: segment_name = "Frequent Buyers"
+                elif r_score == 1: segment_name = "Lost Customers"
+                elif r_score <= 3: segment_name = "At-Risk Customers"
+                else: segment_name = "New Customers"
 
             # Write segment to DB
-            seg = Segment(user_id=user.id, segment_name=segment_name, confidence=confidence)
+            seg = Segment(user_id=user.id, segment_name=segment_name, confidence=1.0)
             self.db.add(seg)
 
             # Churn Prediction
