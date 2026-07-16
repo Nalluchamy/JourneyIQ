@@ -31,7 +31,7 @@ python-multipart>=0.0.9
 
 # Deep Learning Recommendation Engine
 torch>=2.0.0
-pandas>=2.0.0
+pandas>=3.0.3
 scikit-learn>=1.2.0
 scipy>=1.10.0
 gunicorn>=22.0.0
